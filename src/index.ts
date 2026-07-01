@@ -83,6 +83,7 @@ export type {
   ContactUpdateInput,
   AddInteractionInput,
   ContactsListOptions,
+  EnrichContactResult,
 } from './contacts.js';
 export type {
   Organization,

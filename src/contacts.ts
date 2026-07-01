@@ -50,6 +50,14 @@ export interface ContactUpdateInput {
   organizationName?: string;
 }
 
+export interface EnrichContactResult {
+  enqueued: boolean;
+  /** The enrichment job id — the newly created one, or the in-flight one that blocked it. */
+  enrichmentId?: string;
+  /** Why nothing was enqueued (only set when `enqueued` is false). */
+  reason?: 'auto-enrich-disabled' | 'already-in-flight';
+}
+
 export interface AddInteractionInput {
   contactId: string;
   type: InteractionType;
@@ -87,5 +95,16 @@ export class ContactsApi {
 
   async addInteraction(input: AddInteractionInput): Promise<ContactInteraction> {
     return await this.client.crmApi.contactAddInteraction.mutate(input) as ContactInteraction;
+  }
+
+  /**
+   * Enqueue a web-search enrichment job for an existing contact. This is an
+   * explicit action, so it runs regardless of the workspace's auto-enrich
+   * setting; the enrich-pending-contacts cron drains the job into the
+   * enrichment agent. Idempotent — a contact with a job already in flight is
+   * not re-queued.
+   */
+  async enrich(id: string): Promise<EnrichContactResult> {
+    return await this.client.crmApi.contactEnrich.mutate({ contactId: id }) as EnrichContactResult;
   }
 }

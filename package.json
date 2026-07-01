@@ -1,6 +1,6 @@
 {
   "name": "exponential-sdk",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "SDK for interacting with the Exponential API",
   "type": "module",
   "main": "./dist/index.js",
