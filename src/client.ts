@@ -85,10 +85,13 @@ export interface TrpcClient {
   crmApi: {
     contactList: { query: (input: { workspaceId: string; search?: string; tags?: string[]; organizationId?: string; limit?: number; cursor?: string }) => Promise<unknown> };
     contactGet: { query: (input: { id: string; includeInteractions?: boolean }) => Promise<unknown> };
-    contactCreate: { mutate: (input: { workspaceId: string; firstName?: string; lastName?: string; email?: string | null; phone?: string; linkedIn?: string; telegram?: string; twitter?: string; github?: string; bluesky?: string; about?: string; profileType?: string; skills?: string[]; tags?: string[]; organizationId?: string }) => Promise<unknown> };
-    contactUpdate: { mutate: (input: { id: string; firstName?: string; lastName?: string; email?: string | null; phone?: string | null; linkedIn?: string | null; telegram?: string | null; twitter?: string | null; github?: string | null; bluesky?: string | null; about?: string; profileType?: string; skills?: string[]; tags?: string[]; organizationId?: string | null }) => Promise<unknown> };
+    contactCreate: { mutate: (input: { workspaceId: string; firstName?: string; lastName?: string; email?: string | null; phone?: string; linkedIn?: string; telegram?: string; twitter?: string; github?: string; bluesky?: string; about?: string; profileType?: string; skills?: string[]; tags?: string[]; organizationId?: string; organizationName?: string }) => Promise<unknown> };
+    contactUpdate: { mutate: (input: { id: string; firstName?: string; lastName?: string; email?: string | null; phone?: string | null; linkedIn?: string | null; telegram?: string | null; twitter?: string | null; github?: string | null; bluesky?: string | null; about?: string; profileType?: string; skills?: string[]; tags?: string[]; organizationId?: string | null; organizationName?: string }) => Promise<unknown> };
     contactDelete: { mutate: (input: { id: string }) => Promise<unknown> };
     contactAddInteraction: { mutate: (input: { contactId: string; type: string; direction: string; subject?: string; notes?: string; metadata?: unknown }) => Promise<unknown> };
+    organizationList: { query: (input: { workspaceId: string; search?: string; industry?: string; limit?: number; cursor?: string }) => Promise<unknown> };
+    organizationGet: { query: (input: { id: string }) => Promise<unknown> };
+    organizationCreate: { mutate: (input: { workspaceId: string; name: string; websiteUrl?: string | null; logoUrl?: string | null; description?: string; industry?: string; size?: string }) => Promise<unknown> };
     pipelineGet: { query: (input: { workspaceId: string }) => Promise<unknown> };
     pipelineGetStages: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
     dealList: { query: (input: { workspaceId: string }) => Promise<unknown[]> };

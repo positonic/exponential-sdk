@@ -26,6 +26,8 @@ export interface ContactCreateInput {
   skills?: string[];
   tags?: string[];
   organizationId?: string;
+  /** Link (or find-or-create) an organization by name. Ignored when organizationId is set. */
+  organizationName?: string;
 }
 
 export interface ContactUpdateInput {
@@ -44,6 +46,8 @@ export interface ContactUpdateInput {
   skills?: string[];
   tags?: string[];
   organizationId?: string | null;
+  /** Link (or find-or-create) an organization by name. Ignored when organizationId is set. */
+  organizationName?: string;
 }
 
 export interface AddInteractionInput {

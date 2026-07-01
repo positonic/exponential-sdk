@@ -4,6 +4,7 @@ import { ActionCommentsApi } from './actionComments.js';
 import { ProjectsApi } from './projects.js';
 import { WorkspacesApi } from './workspaces.js';
 import { ContactsApi } from './contacts.js';
+import { OrganizationsApi } from './organizations.js';
 import { PipelinesApi } from './pipelines.js';
 import { TicketsApi } from './tickets.js';
 import { ProductsApi } from './products.js';
@@ -19,6 +20,7 @@ export class ExponentialClient {
   projects: ProjectsApi;
   workspaces: WorkspacesApi;
   contacts: ContactsApi;
+  organizations: OrganizationsApi;
   pipelines: PipelinesApi;
   tickets: TicketsApi;
   products: ProductsApi;
@@ -34,6 +36,7 @@ export class ExponentialClient {
     this.projects = new ProjectsApi(this.client);
     this.workspaces = new WorkspacesApi(this.client);
     this.contacts = new ContactsApi(this.client);
+    this.organizations = new OrganizationsApi(this.client);
     this.pipelines = new PipelinesApi(this.client);
     this.tickets = new TicketsApi(this.client);
     this.products = new ProductsApi(this.client);
@@ -81,6 +84,15 @@ export type {
   AddInteractionInput,
   ContactsListOptions,
 } from './contacts.js';
+export type {
+  Organization,
+  OrganizationListOutput,
+  OrganizationSize,
+} from './types/organization.js';
+export type {
+  OrganizationCreateInput,
+  OrganizationsListOptions,
+} from './organizations.js';
 export type {
   Pipeline,
   PipelineStage,
