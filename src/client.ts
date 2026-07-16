@@ -108,6 +108,12 @@ export interface TrpcClient {
     updateComment: { mutate: (input: { commentId: string; content: string }) => Promise<unknown> };
     deleteComment: { mutate: (input: { commentId: string }) => Promise<unknown> };
   };
+  page: {
+    list: { query: (input: { workspaceId: string; projectId?: string; search?: string }) => Promise<unknown[]> };
+    get: { query: (input: { id: string }) => Promise<unknown> };
+    create: { mutate: (input: { workspaceId: string; projectId?: string | null; title?: string; body?: string; includeInSearch?: boolean }) => Promise<unknown> };
+    update: { mutate: (input: { id: string; title?: string; projectId?: string | null; includeInSearch?: boolean; body?: string }) => Promise<unknown> };
+  };
   epic: {
     list: { query: (input: { workspaceId: string; status?: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED' }) => Promise<unknown[]> };
     getById: { query: (input: { id: string }) => Promise<unknown> };
@@ -131,14 +137,24 @@ export interface TrpcClient {
       delete: { mutate: (input: { id: string }) => Promise<unknown> };
     };
     feature: {
-      list: { query: (input: { productId: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'ARCHIVED' }) => Promise<unknown[]> };
+      list: { query: (input: { productId: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'DEPRECATED' | 'ARCHIVED' }) => Promise<unknown[]> };
       getById: { query: (input: { id: string }) => Promise<unknown> };
-      create: { mutate: (input: { productId: string; name: string; description?: string; vision?: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'ARCHIVED'; effort?: number; priority?: number; goalId?: number }) => Promise<unknown> };
-      update: { mutate: (input: { id: string; name?: string; description?: string; vision?: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'ARCHIVED'; effort?: number; priority?: number; goalId?: number | null }) => Promise<unknown> };
+      create: { mutate: (input: { productId: string; name: string; description?: string; vision?: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'DEPRECATED' | 'ARCHIVED'; effort?: number; priority?: number; goalId?: number; areaId?: string }) => Promise<unknown> };
+      update: { mutate: (input: { id: string; name?: string; description?: string; vision?: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'DEPRECATED' | 'ARCHIVED'; effort?: number; priority?: number; goalId?: number | null; areaId?: string | null }) => Promise<unknown> };
       delete: { mutate: (input: { id: string }) => Promise<unknown> };
       addUserStory: { mutate: (input: { featureId: string; scopeId?: string; asA?: string; iWant?: string; soThat?: string; acceptanceCriteria?: string }) => Promise<unknown> };
       updateUserStory: { mutate: (input: { id: string; scopeId?: string | null; asA?: string; iWant?: string; soThat?: string; acceptanceCriteria?: string }) => Promise<unknown> };
       deleteUserStory: { mutate: (input: { id: string }) => Promise<unknown> };
+      addScope: { mutate: (input: { featureId: string; version: string; description: string; status?: 'PLANNED' | 'IN_PROGRESS' | 'SHIPPED' | 'DEPRECATED'; shippedAt?: Date }) => Promise<unknown> };
+      updateScope: { mutate: (input: { id: string; version?: string; description?: string; status?: 'PLANNED' | 'IN_PROGRESS' | 'SHIPPED' | 'DEPRECATED'; shippedAt?: Date | null; displayOrder?: number }) => Promise<unknown> };
+      deleteScope: { mutate: (input: { id: string }) => Promise<unknown> };
+      addRequirement: { mutate: (input: { featureId: string; scopeId?: string; statement: string; kind?: 'FUNCTIONAL' | 'NON_FUNCTIONAL' | 'CONSTRAINT' }) => Promise<unknown> };
+      setRequirementChecked: { mutate: (input: { id: string; checked: boolean }) => Promise<unknown> };
+      deleteRequirement: { mutate: (input: { id: string }) => Promise<unknown> };
+      linkPage: { mutate: (input: { featureId: string; pageId: string; scopeId?: string }) => Promise<unknown> };
+      unlinkPage: { mutate: (input: { featureId: string; pageId: string }) => Promise<unknown> };
+      listAreas: { query: (input: { productId: string }) => Promise<unknown[]> };
+      createArea: { mutate: (input: { productId: string; name: string; description?: string }) => Promise<unknown> };
     };
     ticket: {
       list: { query: (input: { productId?: string; status?: string; type?: string; featureId?: string; epicId?: string; cycleId?: string; assigneeId?: string; prUrl?: string; branchName?: string }) => Promise<unknown[]> };

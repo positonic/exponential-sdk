@@ -6,6 +6,7 @@ export type FeatureStatus =
   | 'DEFINED'
   | 'IN_PROGRESS'
   | 'SHIPPED'
+  | 'DEPRECATED'
   | 'ARCHIVED';
 
 export type FeatureScopeStatus =
@@ -19,7 +20,8 @@ export interface FeatureScope {
   featureId: string;
   version: string;
   status: FeatureScopeStatus;
-  summary: string | null;
+  description: string;
+  shippedAt: Date | null;
   displayOrder: number;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +37,7 @@ export interface Feature {
   effort: number | null;
   priority: number | null;
   goalId: number | null;
+  areaId: string | null;
   createdById: string | null;
   createdAt: Date;
   updatedAt: Date;

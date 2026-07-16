@@ -16,6 +16,8 @@ export interface FeatureCreateInput {
   /** 0–4; lower is higher priority. */
   priority?: number;
   goalId?: number;
+  /** Area (per-product bucket) to file the feature under. */
+  areaId?: string;
 }
 
 export interface FeatureUpdateInput {
@@ -27,6 +29,14 @@ export interface FeatureUpdateInput {
   effort?: number;
   priority?: number;
   goalId?: number | null;
+  areaId?: string | null;
+}
+
+export interface FeatureLinkPageInput {
+  featureId: string;
+  pageId: string;
+  /** Pin the linked page to one of the feature's scopes. */
+  scopeId?: string;
 }
 
 export class FeaturesApi {
@@ -55,5 +65,17 @@ export class FeaturesApi {
     return await this.client.product.feature.delete.mutate({ id }) as {
       success: boolean;
     };
+  }
+
+  /** Link a Knowledge page (PRD, spec, research) to a feature. */
+  async linkPage(input: FeatureLinkPageInput): Promise<unknown> {
+    return await this.client.product.feature.linkPage.mutate(input);
+  }
+
+  async unlinkPage(featureId: string, pageId: string): Promise<{ success: boolean }> {
+    return await this.client.product.feature.unlinkPage.mutate({
+      featureId,
+      pageId,
+    }) as { success: boolean };
   }
 }
