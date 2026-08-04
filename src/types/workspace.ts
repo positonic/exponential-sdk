@@ -21,7 +21,14 @@ export interface WorkspaceMember {
   name: string | null;
   email: string | null;
   image: string | null;
+  /**
+   * The member's WORKSPACE role. Team-based members are reported as `member`
+   * regardless of their team role — a team `owner` holds no workspace
+   * authority, so never gate on this expecting otherwise.
+   */
   role: string;
+  /** The team role, when access is team-based. Null for direct members. */
+  teamRole: string | null;
   source: 'workspace' | 'team';
   /** Teams in this workspace the member belongs to. Empty for direct-only members. */
   teams: { id: string; name: string }[];

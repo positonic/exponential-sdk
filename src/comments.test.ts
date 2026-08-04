@@ -29,6 +29,7 @@ function makeClient() {
         name: 'Andi Stanner',
         email: 'andi@example.com',
         role: 'member',
+        teamRole: null,
         source: 'workspace',
         teams: [],
         mentionSyntax: '@[Andi Stanner](u1)',
