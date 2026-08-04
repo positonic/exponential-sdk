@@ -76,10 +76,14 @@ export interface TrpcClient {
     getAll: { query: (input?: ActionInput) => Promise<unknown[]> };
     getKanbanActions: { query: (input?: KanbanInput) => Promise<unknown[]> };
     getToday: { query: (input?: TodayInput) => Promise<unknown[]> };
+    getTodaysActions: { query: (input?: TodayInput) => Promise<unknown> };
+    getOverdueTriage: { query: (input?: TodayInput) => Promise<unknown> };
     getByDateRange: { query: (input: DateRangeInput) => Promise<unknown[]> };
     getProjectActions: { query: (input: { projectId: string; assigneeId?: string }) => Promise<unknown[]> };
     create: { mutate: (input: ActionCreateInput) => Promise<unknown> };
     update: { mutate: (input: ActionUpdateInput) => Promise<unknown> };
+    bulkReschedule: { mutate: (input: { actionIds: string[]; dueDate: Date | null }) => Promise<unknown> };
+    bulkDefer: { mutate: (input: { actionIds: string[] }) => Promise<unknown> };
   };
   project: {
     getAll: { query: (input?: ProjectInput) => Promise<unknown[]> };
