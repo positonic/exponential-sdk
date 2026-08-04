@@ -86,6 +86,19 @@ export interface TrpcClient {
   };
   workspace: {
     list: { query: () => Promise<unknown[]> };
+    listMembers: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
+  };
+  goalComment: {
+    getComments: { query: (input: { goalId: number }) => Promise<unknown[]> };
+    addComment: { mutate: (input: { goalId: number; content: string; parentUpdateId?: string }) => Promise<unknown> };
+    updateComment: { mutate: (input: { commentId: string; content: string }) => Promise<unknown> };
+    deleteComment: { mutate: (input: { commentId: string }) => Promise<unknown> };
+  };
+  pageComment: {
+    list: { query: (input: { pageId: string }) => Promise<unknown[]> };
+    create: { mutate: (input: { pageId: string; body: string }) => Promise<unknown> };
+    update: { mutate: (input: { commentId: string; body: string }) => Promise<unknown> };
+    delete: { mutate: (input: { commentId: string }) => Promise<unknown> };
   };
   crmApi: {
     contactList: { query: (input: { workspaceId: string; search?: string; tags?: string[]; organizationId?: string; limit?: number; cursor?: string }) => Promise<unknown> };
@@ -141,6 +154,15 @@ export interface TrpcClient {
       update: { mutate: (input: { id: string; name?: string; description?: string; icon?: string; color?: string; funTicketIds?: boolean }) => Promise<unknown> };
       delete: { mutate: (input: { id: string }) => Promise<unknown> };
     };
+    featureComment: {
+      list: { query: (input: { featureId: string }) => Promise<unknown[]> };
+      create: { mutate: (input: { featureId: string; scopeId?: string; threadId?: string; body: string; quotedText?: string }) => Promise<unknown> };
+      reply: { mutate: (input: { parentId: string; body: string }) => Promise<unknown> };
+      update: { mutate: (input: { commentId: string; body: string }) => Promise<unknown> };
+      delete: { mutate: (input: { commentId: string }) => Promise<unknown> };
+      resolve: { mutate: (input: { featureId: string; threadId: string }) => Promise<unknown> };
+      unresolve: { mutate: (input: { featureId: string; threadId: string }) => Promise<unknown> };
+    };
     feature: {
       list: { query: (input: { productId: string; status?: 'IDEA' | 'DEFINED' | 'IN_PROGRESS' | 'SHIPPED' | 'DEPRECATED' | 'ARCHIVED' }) => Promise<unknown[]> };
       getById: { query: (input: { id: string }) => Promise<unknown> };
@@ -171,6 +193,7 @@ export interface TrpcClient {
       addDependency: { mutate: (input: { ticketId: string; dependsOnId: string }) => Promise<unknown> };
       removeDependency: { mutate: (input: { ticketId: string; dependsOnId: string }) => Promise<unknown> };
       addComment: { mutate: (input: { ticketId: string; content: string }) => Promise<unknown> };
+      updateComment: { mutate: (input: { id: string; content: string }) => Promise<unknown> };
       deleteComment: { mutate: (input: { id: string }) => Promise<unknown> };
       linkAction: { mutate: (input: { ticketId: string; actionId: string }) => Promise<unknown> };
       unlinkAction: { mutate: (input: { actionId: string }) => Promise<unknown> };

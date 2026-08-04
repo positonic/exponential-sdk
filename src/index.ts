@@ -1,6 +1,9 @@
 import { createClient, isTRPCError, TRPCClientError, type TrpcClient } from './client.js';
 import { ActionsApi } from './actions.js';
 import { ActionCommentsApi } from './actionComments.js';
+import { FeatureCommentsApi } from './featureComments.js';
+import { PageCommentsApi } from './pageComments.js';
+import { GoalCommentsApi } from './goalComments.js';
 import { ProjectsApi } from './projects.js';
 import { WorkspacesApi } from './workspaces.js';
 import { ContactsApi } from './contacts.js';
@@ -22,6 +25,9 @@ export class ExponentialClient {
   private client: TrpcClient;
   actions: ActionsApi;
   actionComments: ActionCommentsApi;
+  featureComments: FeatureCommentsApi;
+  pageComments: PageCommentsApi;
+  goalComments: GoalCommentsApi;
   projects: ProjectsApi;
   workspaces: WorkspacesApi;
   contacts: ContactsApi;
@@ -43,6 +49,9 @@ export class ExponentialClient {
     this.client = createClient(this.config);
     this.actions = new ActionsApi(this.client);
     this.actionComments = new ActionCommentsApi(this.client);
+    this.featureComments = new FeatureCommentsApi(this.client);
+    this.pageComments = new PageCommentsApi(this.client);
+    this.goalComments = new GoalCommentsApi(this.client);
     this.projects = new ProjectsApi(this.client);
     this.workspaces = new WorkspacesApi(this.client);
     this.contacts = new ContactsApi(this.client);
@@ -85,7 +94,12 @@ export type {
   ActionStatus,
 } from './actions.js';
 export type { Project, ProjectOutput, ProjectsListOutput } from './types/project.js';
-export type { Workspace, WorkspaceOutput, WorkspacesListOutput } from './types/workspace.js';
+export type {
+  Workspace,
+  WorkspaceMember,
+  WorkspaceOutput,
+  WorkspacesListOutput,
+} from './types/workspace.js';
 export type {
   Contact,
   ContactInteraction,
@@ -123,12 +137,29 @@ export type {
 export type {
   ActionComment,
   TicketComment,
+  FeatureComment,
+  PageComment,
+  GoalComment,
   CommentAuthor,
 } from './types/comment.js';
 export type {
   ActionCommentAddInput,
   ActionCommentUpdateInput,
 } from './actionComments.js';
+export type {
+  FeatureCommentCreateInput,
+  FeatureCommentReplyInput,
+  FeatureCommentUpdateInput,
+  FeatureCommentThreadInput,
+} from './featureComments.js';
+export type {
+  PageCommentCreateInput,
+  PageCommentUpdateInput,
+} from './pageComments.js';
+export type {
+  GoalCommentAddInput,
+  GoalCommentUpdateInput,
+} from './goalComments.js';
 export type { Product } from './types/product.js';
 export type { ProductCreateInput, ProductUpdateInput } from './products.js';
 export type {
@@ -179,6 +210,7 @@ export type {
   TicketCreateInput,
   TicketUpdateInput,
   TicketCommentAddInput,
+  TicketCommentUpdateInput,
   TicketSearchOptions,
 } from './tickets.js';
 export type { Epic, EpicStatus, EpicPriority } from './types/epic.js';

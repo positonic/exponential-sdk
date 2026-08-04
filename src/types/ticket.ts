@@ -1,3 +1,4 @@
+import type { TicketComment } from './comment.js';
 // Ticket types matching the Exponential API responses.
 // Tickets are the unit of work in the product backlog and can link
 // to features, epics, scopes, cycles, and actions.
@@ -100,11 +101,9 @@ export interface TicketDetail extends Ticket {
     completedAt: Date | null;
     kanbanStatus: string | null;
   }>;
-  comments?: Array<{
-    id: string;
-    content: string;
-    createdAt: Date;
-    updatedAt: Date;
-    author: TicketAssignee;
-  }>;
+  /**
+   * The ticket's discussion, newest first. The detail fetch is the only way to
+   * read ticket comments — there is no standalone list endpoint.
+   */
+  comments?: TicketComment[];
 }
