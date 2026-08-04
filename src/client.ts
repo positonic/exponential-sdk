@@ -67,6 +67,11 @@ type ActionUpdateInput = {
 };
 
 export interface TrpcClient {
+  search: {
+    global: {
+      query: (input: { query: string; workspaceId?: string; limit?: number }) => Promise<unknown>;
+    };
+  };
   action: {
     getAll: { query: (input?: ActionInput) => Promise<unknown[]> };
     getKanbanActions: { query: (input?: KanbanInput) => Promise<unknown[]> };
