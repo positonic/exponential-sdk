@@ -16,6 +16,7 @@ import { AreasApi } from './areas.js';
 import { PagesApi } from './pages.js';
 import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
+import { SearchApi } from './search.js';
 
 export class ExponentialClient {
   private client: TrpcClient;
@@ -36,6 +37,7 @@ export class ExponentialClient {
   pages: PagesApi;
   requirements: RequirementsApi;
   scopes: ScopesApi;
+  search: SearchApi;
 
   constructor(private config: { token: string; apiUrl: string }) {
     this.client = createClient(this.config);
@@ -56,6 +58,7 @@ export class ExponentialClient {
     this.pages = new PagesApi(this.client);
     this.requirements = new RequirementsApi(this.client);
     this.scopes = new ScopesApi(this.client);
+    this.search = new SearchApi(this.client);
   }
 }
 
@@ -184,6 +187,13 @@ export type {
   EpicUpdateInput,
   EpicListOptions,
 } from './epics.js';
+export type {
+  SearchResult,
+  SearchResultType,
+  SearchResultWorkspace,
+  GlobalSearchOptions,
+  GlobalSearchOutput,
+} from './types/search.js';
 export type { Tag, TagEntityType, TagListResult } from './types/tag.js';
 export type {
   LabelListOptions,
