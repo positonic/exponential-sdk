@@ -76,6 +76,11 @@ export interface TicketCommentAddInput {
   content: string;
 }
 
+export interface TicketCommentUpdateInput {
+  id: string;
+  content: string;
+}
+
 export interface TicketSearchOptions {
   productId: string;
   query?: string;
@@ -139,6 +144,12 @@ export class TicketsApi {
 
   async addComment(input: TicketCommentAddInput): Promise<TicketComment> {
     return await this.client.product.ticket.addComment.mutate(
+      input,
+    ) as TicketComment;
+  }
+
+  async updateComment(input: TicketCommentUpdateInput): Promise<TicketComment> {
+    return await this.client.product.ticket.updateComment.mutate(
       input,
     ) as TicketComment;
   }
