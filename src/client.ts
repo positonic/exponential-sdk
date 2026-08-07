@@ -66,7 +66,144 @@ type ActionUpdateInput = {
   blockedByIds?: string[];
 };
 
+// ── Goals (objectives) and key results ──────────────────────────────────────
+// Objectives are `Goal` rows with INTEGER ids; key results are `KeyResult` rows
+// with cuid ids. `period` is a free-form string ("Q3-2026", "Annual-2026").
+
+type GoalStatusInput = 'planned' | 'active' | 'completed' | 'archived';
+/** Reads and `updateGoalStatus` also accept `on-hold`; `updateGoal` does not. */
+type GoalQueryStatusInput = GoalStatusInput | 'on-hold';
+
+type GoalCreateProcedureInput = {
+  title: string;
+  description?: string;
+  whyThisGoal?: string;
+  notes?: string;
+  dueDate?: Date;
+  period?: string;
+  status?: GoalStatusInput;
+  lifeDomainId?: number;
+  projectId?: string;
+  outcomeIds?: string[];
+  driUserId?: string;
+  workspaceId?: string;
+  parentGoalId?: number;
+  icon?: string | null;
+  iconColor?: string | null;
+};
+
+type GoalUpdateProcedureInput = {
+  id: number;
+  title?: string;
+  description?: string | null;
+  whyThisGoal?: string | null;
+  notes?: string | null;
+  dueDate?: Date | null;
+  period?: string | null;
+  status?: GoalStatusInput;
+  lifeDomainId?: number | null;
+  projectId?: string | null;
+  projectIds?: string[];
+  outcomeIds?: string[];
+  driUserId?: string | null;
+  workspaceId?: string | null;
+  parentGoalId?: number | null;
+  displayOrder?: number;
+  icon?: string | null;
+  iconColor?: string | null;
+};
+
+type KeyResultStatusInput =
+  | 'not-started'
+  | 'on-track'
+  | 'at-risk'
+  | 'off-track'
+  | 'achieved';
+
+type KeyResultUnitInput = 'percent' | 'count' | 'currency' | 'hours' | 'custom';
+
+type KeyResultCreateProcedureInput = {
+  goalId: number;
+  title: string;
+  description?: string;
+  targetValue: number;
+  startValue?: number;
+  currentValue?: number;
+  unit?: KeyResultUnitInput;
+  unitLabel?: string;
+  period: string;
+  periodStart?: Date;
+  periodEnd?: Date;
+  driUserId?: string;
+  workspaceId?: string;
+};
+
+type KeyResultUpdateProcedureInput = {
+  id: string;
+  title?: string;
+  description?: string;
+  targetValue?: number;
+  currentValue?: number;
+  startValue?: number;
+  unit?: KeyResultUnitInput;
+  unitLabel?: string;
+  status?: KeyResultStatusInput;
+  confidence?: number;
+  driUserId?: string;
+  goalId?: number;
+};
+
+type CalendarProviderInput = 'google' | 'microsoft';
+
+type CalendarAccountSelectorInput = {
+  provider?: CalendarProviderInput;
+  accountId?: string;
+};
+
+type CalendarCreateEventPayload = {
+  summary: string;
+  description?: string;
+  start: { dateTime: string; timeZone?: string };
+  end: { dateTime: string; timeZone?: string };
+  attendees?: Array<{ email: string }>;
+  conferenceData?: {
+    createRequest: {
+      requestId: string;
+      conferenceSolutionKey: { type: 'hangoutsMeet' };
+    };
+  };
+  calendarId?: string;
+  provider?: CalendarProviderInput;
+};
+
 export interface TrpcClient {
+  calendar: {
+    getAllConnectionStatuses: { query: () => Promise<unknown> };
+    getCalendarAccounts: { query: () => Promise<unknown> };
+    getEventsMultiCalendar: {
+      query: (input: {
+        timeMin?: Date;
+        timeMax?: Date;
+        maxResults?: number;
+      }) => Promise<unknown[]>;
+    };
+    listCalendars: {
+      query: (input?: CalendarAccountSelectorInput) => Promise<unknown[]>;
+    };
+    getCalendarPreferences: {
+      query: (input?: CalendarAccountSelectorInput) => Promise<unknown>;
+    };
+    updateSelectedCalendars: {
+      mutate: (
+        input: CalendarAccountSelectorInput & { calendarIds: string[] },
+      ) => Promise<unknown>;
+    };
+    syncCalendarList: {
+      mutate: (input?: CalendarAccountSelectorInput) => Promise<unknown>;
+    };
+    createEvent: { mutate: (input: CalendarCreateEventPayload) => Promise<unknown> };
+    disconnect: { mutate: (input?: CalendarAccountSelectorInput) => Promise<unknown> };
+  };
   search: {
     global: {
       query: (input: { query: string; workspaceId?: string; limit?: number }) => Promise<unknown>;
@@ -92,6 +229,88 @@ export interface TrpcClient {
     list: { query: () => Promise<unknown[]> };
     listMembers: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
   };
+  goal: {
+    getById: { query: (input: { id: number }) => Promise<unknown> };
+    getAllMyGoals: {
+      query: (input?: {
+        workspaceId?: string;
+        period?: string;
+        status?: GoalQueryStatusInput;
+      }) => Promise<unknown[]>;
+    };
+    getGoalTree: {
+      query: (input?: {
+        workspaceId?: string;
+        status?: GoalQueryStatusInput;
+      }) => Promise<unknown[]>;
+    };
+    getProjectGoals: { query: (input: { projectId: string }) => Promise<unknown[]> };
+    createGoal: { mutate: (input: GoalCreateProcedureInput) => Promise<unknown> };
+    /**
+     * Partial update — only the keys present are written, and an explicit null
+     * clears. Every nullable field is therefore `T | null | undefined`.
+     */
+    updateGoal: { mutate: (input: GoalUpdateProcedureInput) => Promise<unknown> };
+    /** Status-only write; the only path that accepts `on-hold`. */
+    updateGoalStatus: {
+      mutate: (input: { id: number; status: GoalQueryStatusInput }) => Promise<unknown>;
+    };
+    /** Single-column re-parent; validates no-self / no-cycle / depth-5. */
+    setParent: {
+      mutate: (input: { id: number; parentGoalId: number | null }) => Promise<unknown>;
+    };
+    deleteGoal: { mutate: (input: { id: number }) => Promise<unknown> };
+  };
+  // Mounted at `okr`, but this is the KEY RESULT router — objectives live on
+  // `goal` above. Key results are cuid-keyed; the `goalId` linking them to an
+  // objective is an integer.
+  okr: {
+    getAll: {
+      query: (input?: {
+        workspaceId?: string;
+        goalId?: number;
+        period?: string;
+        status?: KeyResultStatusInput;
+        onlyMine?: boolean;
+      }) => Promise<unknown[]>;
+    };
+    getByObjective: {
+      query: (input: {
+        workspaceId?: string;
+        period?: string;
+        includePairedPeriod?: boolean;
+        onlyMine?: boolean;
+      }) => Promise<unknown[]>;
+    };
+    getById: { query: (input: { id: string }) => Promise<unknown> };
+    getByIds: { query: (input: { ids: string[] }) => Promise<unknown[]> };
+    create: { mutate: (input: KeyResultCreateProcedureInput) => Promise<unknown> };
+    update: { mutate: (input: KeyResultUpdateProcedureInput) => Promise<unknown> };
+    checkIn: {
+      mutate: (input: {
+        keyResultId: string;
+        newValue: number;
+        notes?: string;
+      }) => Promise<unknown>;
+    };
+    delete: { mutate: (input: { id: string }) => Promise<unknown> };
+    linkProject: {
+      mutate: (input: { keyResultId: string; projectId: string }) => Promise<unknown>;
+    };
+    unlinkProject: {
+      mutate: (input: { keyResultId: string; projectId: string }) => Promise<unknown>;
+    };
+    linkFeature: {
+      mutate: (input: { keyResultId: string; featureId: string }) => Promise<unknown>;
+    };
+    unlinkFeature: {
+      mutate: (input: { keyResultId: string; featureId: string }) => Promise<unknown>;
+    };
+    getPeriods: { query: () => Promise<unknown[]> };
+    getStats: {
+      query: (input: { workspaceId?: string; period?: string }) => Promise<unknown>;
+    };
+  };
   goalComment: {
     getComments: { query: (input: { goalId: number }) => Promise<unknown[]> };
     addComment: { mutate: (input: { goalId: number; content: string; parentUpdateId?: string }) => Promise<unknown> };
@@ -110,7 +329,7 @@ export interface TrpcClient {
     contactCreate: { mutate: (input: { workspaceId: string; firstName?: string; lastName?: string; email?: string | null; phone?: string; linkedIn?: string; telegram?: string; twitter?: string; github?: string; bluesky?: string; about?: string; profileType?: string; skills?: string[]; tags?: string[]; organizationId?: string; organizationName?: string }) => Promise<unknown> };
     contactUpdate: { mutate: (input: { id: string; firstName?: string; lastName?: string; email?: string | null; phone?: string | null; linkedIn?: string | null; telegram?: string | null; twitter?: string | null; github?: string | null; bluesky?: string | null; about?: string; profileType?: string; skills?: string[]; tags?: string[]; organizationId?: string | null; organizationName?: string }) => Promise<unknown> };
     contactDelete: { mutate: (input: { id: string }) => Promise<unknown> };
-    contactAddInteraction: { mutate: (input: { contactId: string; type: string; direction: string; subject?: string; notes?: string; metadata?: unknown }) => Promise<unknown> };
+    contactAddInteraction: { mutate: (input: { contactId: string; type: string; direction: string; subject?: string; notes?: string; metadata?: unknown; occurredAt?: Date | string }) => Promise<unknown> };
     contactEnrich: { mutate: (input: { contactId: string }) => Promise<unknown> };
     organizationList: { query: (input: { workspaceId: string; search?: string; industry?: string; limit?: number; cursor?: string }) => Promise<unknown> };
     organizationGet: { query: (input: { id: string }) => Promise<unknown> };
@@ -186,6 +405,13 @@ export interface TrpcClient {
       unlinkPage: { mutate: (input: { featureId: string; pageId: string }) => Promise<unknown> };
       listAreas: { query: (input: { productId: string }) => Promise<unknown[]> };
       createArea: { mutate: (input: { productId: string; name: string; description?: string }) => Promise<unknown> };
+    };
+    cycle: {
+      list: { query: (input: { workspaceId: string; status?: 'PLANNED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED'; autoCreate?: boolean }) => Promise<unknown[]> };
+      getById: { query: (input: { id: string }) => Promise<unknown> };
+      create: { mutate: (input: { workspaceId: string; name?: string; slug?: string; description?: string; startDate?: Date; endDate?: Date; cycleGoal?: string }) => Promise<unknown> };
+      update: { mutate: (input: { id: string; name?: string; description?: string | null; status?: 'PLANNED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED'; startDate?: Date | null; endDate?: Date | null; cycleGoal?: string | null; achievements?: string | null }) => Promise<unknown> };
+      delete: { mutate: (input: { id: string }) => Promise<unknown> };
     };
     ticket: {
       list: { query: (input: { productId?: string; status?: string; type?: string; featureId?: string; epicId?: string; cycleId?: string; assigneeId?: string; prUrl?: string; branchName?: string }) => Promise<unknown[]> };
