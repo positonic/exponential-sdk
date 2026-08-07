@@ -4,6 +4,8 @@ import { ActionCommentsApi } from './actionComments.js';
 import { FeatureCommentsApi } from './featureComments.js';
 import { PageCommentsApi } from './pageComments.js';
 import { GoalCommentsApi } from './goalComments.js';
+import { GoalsApi } from './goals.js';
+import { KeyResultsApi } from './keyResults.js';
 import { ProjectsApi } from './projects.js';
 import { WorkspacesApi } from './workspaces.js';
 import { ContactsApi } from './contacts.js';
@@ -28,6 +30,9 @@ export class ExponentialClient {
   featureComments: FeatureCommentsApi;
   pageComments: PageCommentsApi;
   goalComments: GoalCommentsApi;
+  goals: GoalsApi;
+  /** Same instance as `goals.keyResults`. */
+  keyResults: KeyResultsApi;
   projects: ProjectsApi;
   workspaces: WorkspacesApi;
   contacts: ContactsApi;
@@ -52,6 +57,8 @@ export class ExponentialClient {
     this.featureComments = new FeatureCommentsApi(this.client);
     this.pageComments = new PageCommentsApi(this.client);
     this.goalComments = new GoalCommentsApi(this.client);
+    this.keyResults = new KeyResultsApi(this.client);
+    this.goals = new GoalsApi(this.client, this.keyResults);
     this.projects = new ProjectsApi(this.client);
     this.workspaces = new WorkspacesApi(this.client);
     this.contacts = new ContactsApi(this.client);
@@ -166,6 +173,45 @@ export type {
   GoalCommentAddInput,
   GoalCommentUpdateInput,
 } from './goalComments.js';
+export type {
+  Goal,
+  GoalChildSummary,
+  GoalHealth,
+  GoalKeyResultSummary,
+  GoalLifeDomain,
+  GoalPeriod,
+  GoalProjectSummary,
+  GoalStats,
+  GoalStatus,
+  GoalTreeNode,
+  GoalUserSummary,
+  GoalWritableStatus,
+} from './types/goal.js';
+export type {
+  GoalListOptions,
+  GoalTreeOptions,
+  GoalCreateInput,
+  GoalUpdateInput,
+  GoalSetStatusInput,
+  GoalSetParentInput,
+  GoalStatsOptions,
+} from './goals.js';
+export type {
+  KeyResult,
+  KeyResultCheckIn,
+  KeyResultFeatureLink,
+  KeyResultProjectLink,
+  KeyResultStatus,
+  KeyResultUnit,
+  ObjectiveWithKeyResults,
+} from './types/keyResult.js';
+export type {
+  KeyResultListOptions,
+  KeyResultByObjectiveOptions,
+  KeyResultCreateInput,
+  KeyResultUpdateInput,
+  KeyResultCheckInInput,
+} from './keyResults.js';
 export type { Product } from './types/product.js';
 export type { ProductCreateInput, ProductUpdateInput } from './products.js';
 export type {
