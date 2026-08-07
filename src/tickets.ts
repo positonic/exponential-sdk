@@ -11,21 +11,32 @@ import type { Action } from './types/action.js';
 
 export interface TicketListOptions {
   /**
-   * Required for product-scoped queries. Optional when `prUrl` or `branchName`
-   * is supplied — those filters are workspace-global (a PR URL or branch name
-   * uniquely identifies a Ticket across all products in the workspace), so the
-   * server resolves scope from the caller's auth context instead.
+   * Always required. `product.ticket.list` is product-scoped on the server —
+   * there is no workspace-wide ticket query. To search several products, call
+   * `list` once per product and merge the results.
    */
-  productId?: string;
+  productId: string;
   status?: TicketStatus;
   type?: TicketType;
   featureId?: string;
   epicId?: string;
   cycleId?: string;
   assigneeId?: string;
-  /** Workspace-scoped lookup by `Ticket.prUrl` (exact match). */
+  /**
+   * Filter by `Ticket.prUrl` (exact match).
+   *
+   * Applied **client-side**, after the product-scoped fetch — the server's
+   * `list` input schema has no `prUrl` field. See the note on {@link
+   * TicketsApi.list}.
+   */
   prUrl?: string;
-  /** Workspace-scoped lookup by `Ticket.branchName` (exact match). */
+  /**
+   * Filter by `Ticket.branchName` (exact match).
+   *
+   * Applied **client-side**, after the product-scoped fetch — the server's
+   * `list` input schema has no `branchName` field. See the note on {@link
+   * TicketsApi.list}.
+   */
   branchName?: string;
 }
 
@@ -91,8 +102,26 @@ export interface TicketSearchOptions {
 export class TicketsApi {
   constructor(private client: TrpcClient) {}
 
+  /**
+   * List tickets in one product.
+   *
+   * `prUrl` and `branchName` are filtered here rather than on the server. The
+   * `product.ticket.list` tRPC input schema accepts neither, and zod strips
+   * unknown keys, so forwarding them was silently a no-op: a lookup by a branch
+   * that matched nothing came back as *every ticket in the product*. Filtering
+   * locally makes them mean what they say. Move them server-side once
+   * `product.ticket.list` grows the matching input fields.
+   */
   async list(options: TicketListOptions): Promise<Ticket[]> {
-    return await this.client.product.ticket.list.query(options) as Ticket[];
+    const { prUrl, branchName, ...serverQuery } = options;
+    const tickets = await this.client.product.ticket.list.query(
+      serverQuery,
+    ) as Ticket[];
+
+    return tickets.filter((t) =>
+      (prUrl === undefined || t.prUrl === prUrl) &&
+      (branchName === undefined || t.branchName === branchName)
+    );
   }
 
   async get(id: string): Promise<TicketDetail> {
