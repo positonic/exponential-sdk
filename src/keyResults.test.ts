@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { KeyResultsApi } from './keyResults.js';
 import type { TrpcClient } from './client.js';
 
-function makeApi() {
+function makeApi(goal: { workspaceId: string | null } = { workspaceId: 'ws1' }) {
+  const goalGetById = vi.fn().mockResolvedValue(goal);
   const calls = {
     getAll: vi.fn().mockResolvedValue([]),
     getByObjective: vi.fn().mockResolvedValue([]),
@@ -17,6 +18,7 @@ function makeApi() {
     unlinkFeature: vi.fn().mockResolvedValue({ success: true }),
   };
   const client = {
+    goal: { getById: { query: goalGetById } },
     okr: {
       getAll: { query: calls.getAll },
       getByObjective: { query: calls.getByObjective },
@@ -31,7 +33,7 @@ function makeApi() {
       unlinkFeature: { mutate: calls.unlinkFeature },
     },
   } as unknown as TrpcClient;
-  return { api: new KeyResultsApi(client), calls };
+  return { api: new KeyResultsApi(client), calls, goalGetById };
 }
 
 describe('KeyResultsApi reads', () => {
@@ -98,6 +100,7 @@ describe('KeyResultsApi writes', () => {
       startValue: 40,
       unit: 'count',
       period: 'Q3-2026',
+      workspaceId: 'ws1',
     });
   });
 
@@ -167,5 +170,59 @@ describe('KeyResultsApi writes', () => {
     await api.delete('kr1');
 
     expect(calls.delete).toHaveBeenCalledWith({ id: 'kr1' });
+  });
+});
+
+// A key result with no workspace is invisible to workspace-scoped reads and
+// unwritable by teammates — the same orphaning that has already cost a goal.
+// The server only grew an inherit-from-objective fallback recently, so the SDK
+// resolves it rather than trusting the instance it happens to be talking to.
+describe('KeyResultsApi.create resolves the workspace', () => {
+  it("inherits the objective's workspace when none is given", async () => {
+    const { api, calls, goalGetById } = makeApi({ workspaceId: 'ws-from-goal' });
+
+    await api.create({
+      goalId: 46,
+      title: 'NPS 30 → 45',
+      targetValue: 45,
+      period: 'Q3-2026',
+    });
+
+    expect(goalGetById).toHaveBeenCalledWith({ id: 46 });
+    expect(calls.create).toHaveBeenCalledWith(
+      expect.objectContaining({ goalId: 46, workspaceId: 'ws-from-goal' }),
+    );
+  });
+
+  it('does not look the objective up when a workspace is given', async () => {
+    const { api, calls, goalGetById } = makeApi();
+
+    await api.create({
+      goalId: 46,
+      title: 'NPS 30 → 45',
+      targetValue: 45,
+      period: 'Q3-2026',
+      workspaceId: 'ws-explicit',
+    });
+
+    expect(goalGetById).not.toHaveBeenCalled();
+    expect(calls.create).toHaveBeenCalledWith(
+      expect.objectContaining({ workspaceId: 'ws-explicit' }),
+    );
+  });
+
+  it('leaves the workspace undefined for a personal objective', async () => {
+    const { api, calls } = makeApi({ workspaceId: null });
+
+    await api.create({
+      goalId: 46,
+      title: 'NPS 30 → 45',
+      targetValue: 45,
+      period: 'Q3-2026',
+    });
+
+    expect(calls.create).toHaveBeenCalledWith(
+      expect.objectContaining({ workspaceId: undefined }),
+    );
   });
 });

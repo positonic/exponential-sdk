@@ -233,3 +233,13 @@ describe('GoalsApi.list defensive filtering', () => {
     expect((await api.list()).map((g) => g.id)).toEqual([1, 2, 3]);
   });
 });
+
+describe('GoalsApi.listByProject', () => {
+  it('reads the objectives linked to a project', async () => {
+    const { api, calls } = makeApi();
+
+    await api.listByProject('prj_launch');
+
+    expect(calls.getProjectGoals).toHaveBeenCalledWith({ projectId: 'prj_launch' });
+  });
+});

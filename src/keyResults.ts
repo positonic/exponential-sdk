@@ -42,7 +42,10 @@ export interface KeyResultCreateInput {
   unit?: KeyResultUnit;
   unitLabel?: string;
   driUserId?: string;
-  /** Defaults to the objective's workspace when omitted. */
+  /**
+   * Omit to inherit the objective's workspace — {@link KeyResultsApi.create}
+   * resolves it before writing. Pass one explicitly only to override.
+   */
   workspaceId?: string;
 }
 
@@ -72,11 +75,6 @@ export interface KeyResultCheckInInput {
   note?: string;
 }
 
-export interface KeyResultStatsOptions {
-  workspaceId?: string;
-  period?: string;
-}
-
 /**
  * Key results — the measurable half of an OKR.
  *
@@ -92,6 +90,14 @@ export class KeyResultsApi {
   /**
    * List key results. Pass `workspaceId` for the workspace-wide list (every
    * member's), omit it for your own.
+   *
+   * ⚠️ Workspace scoping here depends on a server-side fix to `okr.getAll`,
+   * which previously accepted a `workspaceId` while still filtering on the
+   * caller's `userId` — so against an older instance this returns only your own
+   * key results, or `[]`, rather than the workspace's. Unlike the filters in
+   * `goals.list()` that cannot be repaired here: the other members' rows never
+   * reach the client. {@link KeyResultsApi.byObjective} is workspace-correct on
+   * every server version and is the safer read when that matters.
    */
   async list(options: KeyResultListOptions = {}): Promise<KeyResult[]> {
     return await this.client.okr.getAll.query(options) as KeyResult[];
@@ -113,8 +119,29 @@ export class KeyResultsApi {
     return await this.client.okr.getById.query({ id }) as KeyResult;
   }
 
+  /**
+   * Create a key result on an objective.
+   *
+   * When `workspaceId` is omitted it is resolved from the objective first,
+   * rather than left to the server. `okr.create` writes the input through as-is
+   * on older instances, so an absent workspace persists as `null` — and a key
+   * result with no workspace is invisible to every workspace-scoped read and
+   * unwritable by teammates once owner-OR-member authz applies. That is the
+   * same orphaning that has already cost a goal; one extra read on a mutation
+   * is a cheap way not to repeat it.
+   */
   async create(input: KeyResultCreateInput): Promise<KeyResult> {
-    return await this.client.okr.create.mutate(input) as KeyResult;
+    let workspaceId = input.workspaceId;
+    if (workspaceId === undefined) {
+      const goal = await this.client.goal.getById.query({
+        id: input.goalId,
+      }) as { workspaceId: string | null };
+      workspaceId = goal.workspaceId ?? undefined;
+    }
+    return await this.client.okr.create.mutate({
+      ...input,
+      workspaceId,
+    }) as KeyResult;
   }
 
   async update(input: KeyResultUpdateInput): Promise<KeyResult> {

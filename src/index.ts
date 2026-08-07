@@ -211,7 +211,6 @@ export type {
   KeyResultCreateInput,
   KeyResultUpdateInput,
   KeyResultCheckInInput,
-  KeyResultStatsOptions,
 } from './keyResults.js';
 export type { Product } from './types/product.js';
 export type { ProductCreateInput, ProductUpdateInput } from './products.js';
