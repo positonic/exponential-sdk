@@ -1,6 +1,5 @@
 import { createClient, isTRPCError, TRPCClientError, type TrpcClient } from './client.js';
 import { ActionsApi } from './actions.js';
-import { CalendarApi } from './calendar.js';
 import { ActionCommentsApi } from './actionComments.js';
 import { FeatureCommentsApi } from './featureComments.js';
 import { PageCommentsApi } from './pageComments.js';
@@ -17,7 +16,6 @@ import { ProductsApi } from './products.js';
 import { FeaturesApi } from './features.js';
 import { UserStoriesApi } from './userStories.js';
 import { EpicsApi } from './epics.js';
-import { CyclesApi } from './cycles.js';
 import { LabelsApi } from './labels.js';
 import { AreasApi } from './areas.js';
 import { PagesApi } from './pages.js';
@@ -28,7 +26,6 @@ import { SearchApi } from './search.js';
 export class ExponentialClient {
   private client: TrpcClient;
   actions: ActionsApi;
-  calendar: CalendarApi;
   actionComments: ActionCommentsApi;
   featureComments: FeatureCommentsApi;
   pageComments: PageCommentsApi;
@@ -46,7 +43,6 @@ export class ExponentialClient {
   features: FeaturesApi;
   userStories: UserStoriesApi;
   epics: EpicsApi;
-  cycles: CyclesApi;
   labels: LabelsApi;
   areas: AreasApi;
   pages: PagesApi;
@@ -57,7 +53,6 @@ export class ExponentialClient {
   constructor(private config: { token: string; apiUrl: string }) {
     this.client = createClient(this.config);
     this.actions = new ActionsApi(this.client);
-    this.calendar = new CalendarApi(this.client);
     this.actionComments = new ActionCommentsApi(this.client);
     this.featureComments = new FeatureCommentsApi(this.client);
     this.pageComments = new PageCommentsApi(this.client);
@@ -74,7 +69,6 @@ export class ExponentialClient {
     this.features = new FeaturesApi(this.client);
     this.userStories = new UserStoriesApi(this.client);
     this.epics = new EpicsApi(this.client);
-    this.cycles = new CyclesApi(this.client);
     this.labels = new LabelsApi(this.client);
     this.areas = new AreasApi(this.client);
     this.pages = new PagesApi(this.client);
@@ -112,26 +106,6 @@ export type {
   OverdueCohort,
   OverdueTriageRow,
 } from './actions.js';
-export type {
-  CalendarAccount,
-  CalendarConnectionStatus,
-  CalendarConnectionStatuses,
-  CalendarEvent,
-  CalendarEventAttendee,
-  CalendarEventTime,
-  CalendarEventWithSource,
-  CalendarInfo,
-  CalendarPreferences,
-  CalendarProviderName,
-  CreatedCalendarEvent,
-} from './types/calendar.js';
-export type {
-  CalendarAccountSelector,
-  CalendarCreateEventInput,
-  CalendarListEventsOptions,
-  CalendarSelectCalendarsInput,
-} from './calendar.js';
-export { CALENDAR_MAX_RESULTS, CALENDAR_MAX_SELECTED } from './calendar.js';
 export type { Project, ProjectOutput, ProjectsListOutput } from './types/project.js';
 export type {
   Workspace,
@@ -298,12 +272,6 @@ export type {
   EpicUpdateInput,
   EpicListOptions,
 } from './epics.js';
-export type { Cycle, CycleDetail, CycleStatus } from './types/cycle.js';
-export type {
-  CycleListOptions,
-  CycleCreateInput,
-  CycleUpdateInput,
-} from './cycles.js';
 export type {
   SearchResult,
   SearchResultType,
