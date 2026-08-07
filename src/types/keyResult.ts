@@ -97,6 +97,11 @@ export interface ObjectiveWithKeyResults {
   workspaceId: string | null;
   driUserId: string | null;
   parentGoalId: number | null;
+  /**
+   * Not returned by the procedure — attached by callers that already know which
+   * workspace they queried, so a cross-workspace list can label each row.
+   */
+  workspace?: { id: string; name: string; slug: string } | null;
   keyResults: KeyResult[];
   /** Manual progress override if set, else the mean of the key results, else 0. */
   progress: number;

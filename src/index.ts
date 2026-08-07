@@ -203,6 +203,7 @@ export type {
   Goal,
   GoalChildSummary,
   GoalHealth,
+  GoalKeyResultSummary,
   GoalLifeDomain,
   GoalPeriod,
   GoalProjectSummary,

@@ -36,10 +36,25 @@ export interface GoalLifeDomain {
 export interface GoalProjectSummary {
   id: string;
   name: string;
+  /** Present on list reads; the detail read selects a narrower project shape. */
+  slug?: string;
   status?: string | null;
   progress?: number | null;
   priority?: string | null;
   endDate?: Date | null;
+}
+
+/**
+ * The lean key-result shape list reads carry — enough to resolve progress
+ * without the full KeyResult payload. `startValue` is absent on `tree()`,
+ * whose select predates it.
+ */
+export interface GoalKeyResultSummary {
+  id: string;
+  status: string;
+  startValue?: number;
+  currentValue: number;
+  targetValue: number;
 }
 
 export interface GoalChildSummary {
@@ -89,6 +104,15 @@ export interface Goal {
   user?: GoalUserSummary;
   driUser?: GoalUserSummary | null;
   workspace?: { id: string; name: string; slug: string } | null;
+  /**
+   * Effective progress 0–100: a manual `progressOverride` if set, else the mean
+   * across measurable key results, else `null` for "no signal". Resolved
+   * server-side so every consumer reads one number.
+   */
+  resolvedProgress?: number | null;
+  /** Whether `resolvedProgress` came from the manual override. */
+  isProgressManual?: boolean;
+  keyResults?: GoalKeyResultSummary[];
   _count?: { keyResults?: number; comments?: number };
 }
 
@@ -99,12 +123,7 @@ export interface Goal {
  */
 export interface GoalTreeNode extends Goal {
   childGoals?: GoalTreeNode[] & GoalChildSummary[];
-  keyResults?: {
-    id: string;
-    status: string;
-    currentValue: number;
-    targetValue: number;
-  }[];
+  keyResults?: GoalKeyResultSummary[];
 }
 
 /** One entry from `goals.periods()`. */
