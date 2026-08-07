@@ -48,6 +48,93 @@ type ActionCreateInput = {
   blockedByIds?: string[];
 };
 
+// ── Goals (objectives) and key results ──────────────────────────────────────
+// Objectives are `Goal` rows with INTEGER ids; key results are `KeyResult` rows
+// with cuid ids. `period` is a free-form string ("Q3-2026", "Annual-2026").
+
+type GoalStatusInput = 'planned' | 'active' | 'completed' | 'archived';
+/** Reads and `updateGoalStatus` also accept `on-hold`; `updateGoal` does not. */
+type GoalQueryStatusInput = GoalStatusInput | 'on-hold';
+
+type GoalCreateProcedureInput = {
+  title: string;
+  description?: string;
+  whyThisGoal?: string;
+  notes?: string;
+  dueDate?: Date;
+  period?: string;
+  status?: GoalStatusInput;
+  lifeDomainId?: number;
+  projectId?: string;
+  outcomeIds?: string[];
+  driUserId?: string;
+  workspaceId?: string;
+  parentGoalId?: number;
+  icon?: string | null;
+  iconColor?: string | null;
+};
+
+type GoalUpdateProcedureInput = {
+  id: number;
+  title?: string;
+  description?: string | null;
+  whyThisGoal?: string | null;
+  notes?: string | null;
+  dueDate?: Date | null;
+  period?: string | null;
+  status?: GoalStatusInput;
+  lifeDomainId?: number | null;
+  projectId?: string | null;
+  projectIds?: string[];
+  outcomeIds?: string[];
+  driUserId?: string | null;
+  workspaceId?: string | null;
+  parentGoalId?: number | null;
+  displayOrder?: number;
+  icon?: string | null;
+  iconColor?: string | null;
+};
+
+type KeyResultStatusInput =
+  | 'not-started'
+  | 'on-track'
+  | 'at-risk'
+  | 'off-track'
+  | 'achieved';
+
+type KeyResultUnitInput = 'percent' | 'count' | 'currency' | 'hours' | 'custom';
+
+type KeyResultCreateProcedureInput = {
+  goalId: number;
+  title: string;
+  description?: string;
+  targetValue: number;
+  startValue?: number;
+  currentValue?: number;
+  unit?: KeyResultUnitInput;
+  unitLabel?: string;
+  period: string;
+  periodStart?: Date;
+  periodEnd?: Date;
+  driUserId?: string;
+  workspaceId?: string;
+};
+
+type KeyResultUpdateProcedureInput = {
+  id: string;
+  title?: string;
+  description?: string;
+  targetValue?: number;
+  currentValue?: number;
+  startValue?: number;
+  unit?: KeyResultUnitInput;
+  unitLabel?: string;
+  status?: KeyResultStatusInput;
+  confidence?: number;
+  driUserId?: string;
+  goalId?: number;
+};
+
 type ActionUpdateInput = {
   id: string;
   name?: string;
@@ -91,6 +178,88 @@ export interface TrpcClient {
   workspace: {
     list: { query: () => Promise<unknown[]> };
     listMembers: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
+  };
+  goal: {
+    getById: { query: (input: { id: number }) => Promise<unknown> };
+    getAllMyGoals: {
+      query: (input?: {
+        workspaceId?: string;
+        period?: string;
+        status?: GoalQueryStatusInput;
+      }) => Promise<unknown[]>;
+    };
+    getGoalTree: {
+      query: (input?: {
+        workspaceId?: string;
+        status?: GoalQueryStatusInput;
+      }) => Promise<unknown[]>;
+    };
+    getProjectGoals: { query: (input: { projectId: string }) => Promise<unknown[]> };
+    createGoal: { mutate: (input: GoalCreateProcedureInput) => Promise<unknown> };
+    /**
+     * Partial update — only the keys present are written, and an explicit null
+     * clears. Every nullable field is therefore `T | null | undefined`.
+     */
+    updateGoal: { mutate: (input: GoalUpdateProcedureInput) => Promise<unknown> };
+    /** Status-only write; the only path that accepts `on-hold`. */
+    updateGoalStatus: {
+      mutate: (input: { id: number; status: GoalQueryStatusInput }) => Promise<unknown>;
+    };
+    /** Single-column re-parent; validates no-self / no-cycle / depth-5. */
+    setParent: {
+      mutate: (input: { id: number; parentGoalId: number | null }) => Promise<unknown>;
+    };
+    deleteGoal: { mutate: (input: { id: number }) => Promise<unknown> };
+  };
+  // Mounted at `okr`, but this is the KEY RESULT router — objectives live on
+  // `goal` above. Key results are cuid-keyed; the `goalId` linking them to an
+  // objective is an integer.
+  okr: {
+    getAll: {
+      query: (input?: {
+        workspaceId?: string;
+        goalId?: number;
+        period?: string;
+        status?: KeyResultStatusInput;
+        onlyMine?: boolean;
+      }) => Promise<unknown[]>;
+    };
+    getByObjective: {
+      query: (input: {
+        workspaceId?: string;
+        period?: string;
+        includePairedPeriod?: boolean;
+        onlyMine?: boolean;
+      }) => Promise<unknown[]>;
+    };
+    getById: { query: (input: { id: string }) => Promise<unknown> };
+    getByIds: { query: (input: { ids: string[] }) => Promise<unknown[]> };
+    create: { mutate: (input: KeyResultCreateProcedureInput) => Promise<unknown> };
+    update: { mutate: (input: KeyResultUpdateProcedureInput) => Promise<unknown> };
+    checkIn: {
+      mutate: (input: {
+        keyResultId: string;
+        newValue: number;
+        notes?: string;
+      }) => Promise<unknown>;
+    };
+    delete: { mutate: (input: { id: string }) => Promise<unknown> };
+    linkProject: {
+      mutate: (input: { keyResultId: string; projectId: string }) => Promise<unknown>;
+    };
+    unlinkProject: {
+      mutate: (input: { keyResultId: string; projectId: string }) => Promise<unknown>;
+    };
+    linkFeature: {
+      mutate: (input: { keyResultId: string; featureId: string }) => Promise<unknown>;
+    };
+    unlinkFeature: {
+      mutate: (input: { keyResultId: string; featureId: string }) => Promise<unknown>;
+    };
+    getPeriods: { query: () => Promise<unknown[]> };
+    getStats: {
+      query: (input: { workspaceId?: string; period?: string }) => Promise<unknown>;
+    };
   };
   goalComment: {
     getComments: { query: (input: { goalId: number }) => Promise<unknown[]> };
