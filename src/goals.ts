@@ -114,9 +114,21 @@ export class GoalsApi {
    * member's), omit it for your own. Includes each objective's linked
    * `projects`, which is the join that maps day-to-day work back to an OKR:
    * every action carries a `projectId`.
+   *
+   * `period` and `status` are sent to the server *and* re-applied here. The
+   * server grew those filters recently; against an instance that predates them
+   * zod strips the unknown keys and hands back **every** objective — a filter
+   * that silently matches everything is worse than one that errors. Re-applying
+   * is a no-op once the server has done the work. Same reasoning as the
+   * client-side `branchName`/`prUrl` filters in `tickets.ts`.
    */
   async list(options: GoalListOptions = {}): Promise<Goal[]> {
-    return await this.client.goal.getAllMyGoals.query(options) as Goal[];
+    const goals = await this.client.goal.getAllMyGoals.query(options) as Goal[];
+    return goals.filter(
+      (g) =>
+        (options.period === undefined || g.period === options.period) &&
+        (options.status === undefined || g.status === options.status),
+    );
   }
 
   /**

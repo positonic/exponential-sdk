@@ -178,3 +178,58 @@ describe('GoalsApi OKR helpers', () => {
     expect(api.keyResults).toBe(keyResults);
   });
 });
+
+describe('GoalsApi.list defensive filtering', () => {
+  // A server that predates the period/status filters strips the unknown keys
+  // and returns everything. Silently matching every objective is the worst
+  // possible failure for a filter, so the SDK re-applies them.
+  function makeUnfilteredApi() {
+    const getAllMyGoals = vi.fn().mockResolvedValue([
+      { id: 1, period: 'Q3-2026', status: 'active' },
+      { id: 2, period: 'Q2-2026', status: 'completed' },
+      { id: 3, period: null, status: 'active' },
+    ]);
+    const client = {
+      goal: { getAllMyGoals: { query: getAllMyGoals } },
+    } as unknown as TrpcClient;
+    return {
+      api: new GoalsApi(client, new KeyResultsApi(client)),
+      getAllMyGoals,
+    };
+  }
+
+  it('re-applies the period filter the server may have ignored', async () => {
+    const { api, getAllMyGoals } = makeUnfilteredApi();
+
+    const found = await api.list({ workspaceId: 'ws1', period: 'Q3-2026' });
+
+    expect(found.map((g) => g.id)).toEqual([1]);
+    // Still sent, so a server that supports it does the work.
+    expect(getAllMyGoals).toHaveBeenCalledWith({
+      workspaceId: 'ws1',
+      period: 'Q3-2026',
+    });
+  });
+
+  it('re-applies the status filter', async () => {
+    const { api } = makeUnfilteredApi();
+
+    const found = await api.list({ status: 'active' });
+
+    expect(found.map((g) => g.id)).toEqual([1, 3]);
+  });
+
+  it('ANDs period and status', async () => {
+    const { api } = makeUnfilteredApi();
+
+    expect(
+      (await api.list({ period: 'Q3-2026', status: 'completed' })).map((g) => g.id),
+    ).toEqual([]);
+  });
+
+  it('returns everything when neither filter is given', async () => {
+    const { api } = makeUnfilteredApi();
+
+    expect((await api.list()).map((g) => g.id)).toEqual([1, 2, 3]);
+  });
+});
