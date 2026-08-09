@@ -106,7 +106,16 @@ export type {
   OverdueCohort,
   OverdueTriageRow,
 } from './actions.js';
-export type { Project, ProjectOutput, ProjectsListOutput } from './types/project.js';
+export type {
+  Project,
+  ProjectDetail,
+  ProjectKeyResultLink,
+  ProjectOutput,
+  ProjectPriority,
+  ProjectStatus,
+  ProjectsListOutput,
+} from './types/project.js';
+export type { ProjectUpdateInput, ProjectsListOptions } from './projects.js';
 export type {
   Workspace,
   WorkspaceMember,

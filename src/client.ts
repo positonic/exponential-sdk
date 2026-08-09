@@ -28,6 +28,31 @@ type ProjectInput = {
   workspaceId?: string;
 };
 
+/**
+ * `project.update` as the server declares it: `name`, `status` and `priority`
+ * are REQUIRED on every call, the rest are optional and only written when
+ * present. `ProjectsApi.update` fills the required three from the current
+ * project so callers can still pass a partial.
+ */
+type ProjectUpdateApiInput = {
+  id: string;
+  name: string;
+  status: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
+  priority: 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
+  description?: string;
+  productId?: string | null;
+  workspaceId?: string | null;
+  driId?: string | null;
+  goalIds?: string[];
+  outcomeIds?: string[];
+  keyResultIds?: string[];
+  lifeDomainIds?: number[];
+  reviewDate?: Date | null;
+  nextActionDate?: Date | null;
+  startDate?: Date | null;
+  endDate?: Date | null;
+};
+
 type ActionStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'DELETED' | 'DRAFT';
 type ActionKanbanStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'CANCELLED';
 type ActionPriority = 'Quick' | 'Scheduled' | '1st Priority' | '2nd Priority' | '3rd Priority' | '4th Priority' | '5th Priority' | 'Errand' | 'Remember' | 'Watch' | 'Someday Maybe';
@@ -174,6 +199,9 @@ export interface TrpcClient {
   };
   project: {
     getAll: { query: (input?: ProjectInput) => Promise<unknown[]> };
+    getById: { query: (input: { id: string }) => Promise<unknown> };
+    update: { mutate: (input: ProjectUpdateApiInput) => Promise<unknown> };
+    delete: { mutate: (input: { id: string }) => Promise<unknown> };
   };
   workspace: {
     list: { query: () => Promise<unknown[]> };
