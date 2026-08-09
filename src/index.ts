@@ -225,6 +225,7 @@ export type { Product } from './types/product.js';
 export type { ProductCreateInput, ProductUpdateInput } from './products.js';
 export type {
   Feature,
+  FeatureKeyResultLink,
   FeatureScope,
   FeatureScopeStatus,
   FeatureStatus,
