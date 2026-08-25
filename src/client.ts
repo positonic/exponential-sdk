@@ -178,7 +178,54 @@ type ActionUpdateInput = {
   blockedByIds?: string[];
 };
 
+type MeetingParticipantPersonInput = {
+  userId?: string;
+  contactId?: string;
+  email?: string;
+  name?: string;
+};
+
+type MeetingCreateProcedureInput = {
+  title: string;
+  transcription: string;
+  description?: string;
+  notes?: string;
+  meetingDate?: Date;
+  projectId?: string;
+  workspaceId?: string;
+  participants?: MeetingParticipantPersonInput[];
+};
+
+type MeetingUpdateDetailsProcedureInput = {
+  id: string;
+  description?: string;
+  notes?: string;
+  summary?: string;
+  transcription?: string;
+  workspaceId?: string | null;
+  meetingDate?: Date | null;
+};
+
 export interface TrpcClient {
+  transcription: {
+    getAllTranscriptions: {
+      query: (input?: {
+        includeArchived?: boolean;
+        workspaceId?: string;
+        meetingType?: 'all' | 'mine' | 'one_on_one' | 'customer' | 'internal';
+      }) => Promise<unknown[]>;
+    };
+    getById: { query: (input: { id: string }) => Promise<unknown> };
+    createManualTranscription: {
+      mutate: (input: MeetingCreateProcedureInput) => Promise<unknown>;
+    };
+    updateDetails: {
+      mutate: (input: MeetingUpdateDetailsProcedureInput) => Promise<unknown>;
+    };
+    updateTitle: {
+      mutate: (input: { id: string; title: string }) => Promise<unknown>;
+    };
+  };
   search: {
     global: {
       query: (input: { query: string; workspaceId?: string; limit?: number }) => Promise<unknown>;
