@@ -119,6 +119,28 @@ export class MeetingsApi {
   }
 
   /**
+   * Permanently delete one meeting. Owner-only: the server answers
+   * NOT_FOUND for a missing id and FORBIDDEN for a meeting you don't own.
+   * Linked actions survive (their meeting link is nulled).
+   */
+  async delete(id: string): Promise<{ success: boolean }> {
+    return await this.client.transcription.deleteTranscription.mutate({
+      id,
+    }) as { success: boolean };
+  }
+
+  /**
+   * Permanently delete meetings in bulk. Scoped to meetings the caller
+   * owns — ids that are missing or owned by someone else are silently
+   * skipped, so compare `count` against the ids you sent.
+   */
+  async deleteMany(ids: string[]): Promise<{ count: number }> {
+    return await this.client.transcription.bulkDeleteTranscriptions.mutate({
+      ids,
+    }) as { count: number };
+  }
+
+  /**
    * Append a block to the meeting's notes (separated by a blank line),
    * creating them if none exist. Read-modify-write, not atomic.
    */

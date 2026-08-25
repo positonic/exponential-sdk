@@ -20,6 +20,8 @@ function makeClient(overrides: { notes?: string | null } = {}) {
     .mockImplementation((input: Record<string, unknown>) =>
       Promise.resolve({ id: input.id, title: input.title }),
     );
+  const deleteTranscription = vi.fn().mockResolvedValue({ success: true });
+  const bulkDeleteTranscriptions = vi.fn().mockResolvedValue({ count: 0 });
 
   const client = {
     transcription: {
@@ -28,6 +30,8 @@ function makeClient(overrides: { notes?: string | null } = {}) {
       createManualTranscription: { mutate: createManualTranscription },
       updateDetails: { mutate: updateDetails },
       updateTitle: { mutate: updateTitle },
+      deleteTranscription: { mutate: deleteTranscription },
+      bulkDeleteTranscriptions: { mutate: bulkDeleteTranscriptions },
     },
   } as unknown as TrpcClient;
 
@@ -38,6 +42,8 @@ function makeClient(overrides: { notes?: string | null } = {}) {
     createManualTranscription,
     updateDetails,
     updateTitle,
+    deleteTranscription,
+    bulkDeleteTranscriptions,
   };
 }
 
@@ -78,6 +84,23 @@ describe('MeetingsApi.update', () => {
   it('throws when nothing would be written', async () => {
     const { api } = makeClient();
     await expect(api.update({ id: 'm1' })).rejects.toThrow('nothing to update');
+  });
+});
+
+describe('MeetingsApi delete', () => {
+  it('delete routes through deleteTranscription', async () => {
+    const { api, deleteTranscription } = makeClient();
+    const result = await api.delete('m1');
+    expect(deleteTranscription).toHaveBeenCalledWith({ id: 'm1' });
+    expect(result).toEqual({ success: true });
+  });
+
+  it('deleteMany routes through bulkDeleteTranscriptions and returns the count', async () => {
+    const { api, bulkDeleteTranscriptions } = makeClient();
+    bulkDeleteTranscriptions.mockResolvedValue({ count: 2 });
+    const result = await api.deleteMany(['m1', 'm2', 'm3']);
+    expect(bulkDeleteTranscriptions).toHaveBeenCalledWith({ ids: ['m1', 'm2', 'm3'] });
+    expect(result).toEqual({ count: 2 });
   });
 });
 
