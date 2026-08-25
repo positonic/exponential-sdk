@@ -18,6 +18,7 @@ import { UserStoriesApi } from './userStories.js';
 import { EpicsApi } from './epics.js';
 import { LabelsApi } from './labels.js';
 import { AreasApi } from './areas.js';
+import { MeetingsApi } from './meetings.js';
 import { PagesApi } from './pages.js';
 import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
@@ -45,6 +46,7 @@ export class ExponentialClient {
   epics: EpicsApi;
   labels: LabelsApi;
   areas: AreasApi;
+  meetings: MeetingsApi;
   pages: PagesApi;
   requirements: RequirementsApi;
   scopes: ScopesApi;
@@ -71,6 +73,7 @@ export class ExponentialClient {
     this.epics = new EpicsApi(this.client);
     this.labels = new LabelsApi(this.client);
     this.areas = new AreasApi(this.client);
+    this.meetings = new MeetingsApi(this.client);
     this.pages = new PagesApi(this.client);
     this.requirements = new RequirementsApi(this.client);
     this.scopes = new ScopesApi(this.client);
@@ -237,6 +240,21 @@ export type {
   FeatureLinkPageInput,
 } from './features.js';
 export type { Area, AreaListOptions, AreaCreateInput } from './areas.js';
+export type {
+  Meeting,
+  MeetingActionSummary,
+  MeetingParticipant,
+  MeetingProjectRef,
+  MeetingSourceIntegration,
+  MeetingWorkspaceRef,
+} from './types/meeting.js';
+export type {
+  MeetingListOptions,
+  MeetingTypeFilter,
+  MeetingParticipantInput,
+  MeetingCreateInput,
+  MeetingUpdateInput,
+} from './meetings.js';
 export type { KnowledgePage } from './types/page.js';
 export type {
   PageListOptions,
