@@ -225,6 +225,12 @@ export interface TrpcClient {
     updateTitle: {
       mutate: (input: { id: string; title: string }) => Promise<unknown>;
     };
+    deleteTranscription: {
+      mutate: (input: { id: string }) => Promise<unknown>;
+    };
+    bulkDeleteTranscriptions: {
+      mutate: (input: { ids: string[] }) => Promise<unknown>;
+    };
   };
   search: {
     global: {
