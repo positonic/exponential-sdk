@@ -206,6 +206,65 @@ type MeetingUpdateDetailsProcedureInput = {
   meetingDate?: Date | null;
 };
 
+// ── Decisions (ADR-0060) ────────────────────────────────────────────────────
+// One model behind both meeting panels: an OPEN QUESTION is a decision whose
+// status is `OPEN`. Every procedure is workspace-scoped except
+// `listForMeeting`, which resolves the workspace from the meeting.
+
+type DecisionStatusInput =
+  | 'OPEN'
+  | 'PROPOSED'
+  | 'ACCEPTED'
+  | 'SUPERSEDED'
+  | 'DEPRECATED';
+
+type DecisionSourceInput = 'MEETING' | 'MANUAL' | 'AGENT';
+
+type DecisionEvidenceInput = {
+  turnIndex: number;
+  speaker?: string | null;
+  startTime?: number | null;
+  text: string;
+};
+
+type DecisionDeciderProcedureInput = {
+  userId?: string | null;
+  name: string;
+  email?: string | null;
+};
+
+type DecisionCreateProcedureInput = {
+  workspaceId: string;
+  statement: string;
+  body?: string | null;
+  status?: DecisionStatusInput;
+  source?: DecisionSourceInput;
+  decidedAt?: Date | null;
+  ownerId?: string | null;
+  transcriptionSessionId?: string | null;
+  occurrenceId?: string | null;
+  productId?: string | null;
+  projectId?: string | null;
+  goalId?: number | null;
+  keyResultId?: string | null;
+  deciders?: DecisionDeciderProcedureInput[];
+  evidence?: DecisionEvidenceInput[];
+};
+
+type DecisionUpdateProcedureInput = {
+  workspaceId: string;
+  decisionId: string;
+  statement?: string;
+  body?: string | null;
+  decidedAt?: Date | null;
+  ownerId?: string | null;
+  productId?: string | null;
+  projectId?: string | null;
+  goalId?: number | null;
+  keyResultId?: string | null;
+  adrDocumentId?: string | null;
+};
+
 export interface TrpcClient {
   transcription: {
     getAllTranscriptions: {
@@ -353,6 +412,66 @@ export interface TrpcClient {
     create: { mutate: (input: { pageId: string; body: string }) => Promise<unknown> };
     update: { mutate: (input: { commentId: string; body: string }) => Promise<unknown> };
     delete: { mutate: (input: { commentId: string }) => Promise<unknown> };
+  };
+  decision: {
+    list: {
+      query: (input: {
+        workspaceId: string;
+        statuses?: DecisionStatusInput[];
+        sources?: DecisionSourceInput[];
+        /** A product id, or "workspace" for decisions with no product. */
+        productId?: string;
+        includeWorkspaceWide?: boolean;
+        projectId?: string;
+        search?: string;
+        /** One decision by its workspace sequence number — `D-0003` → 3. */
+        number?: number;
+        limit?: number;
+      }) => Promise<unknown[]>;
+    };
+    get: {
+      query: (input: { workspaceId: string; decisionId: string }) => Promise<unknown>;
+    };
+    /** Workspace comes from the meeting; drafts included for meeting editors. */
+    listForMeeting: {
+      query: (input: { transcriptionSessionId: string }) => Promise<unknown>;
+    };
+    listForAdr: {
+      query: (input: { workspaceId: string; adrDocumentId: string }) => Promise<unknown[]>;
+    };
+    /** Extract draft decisions from a meeting's notes and transcript. */
+    extractDrafts: {
+      mutate: (input: { transcriptionSessionId: string }) => Promise<unknown>;
+    };
+    create: { mutate: (input: DecisionCreateProcedureInput) => Promise<unknown> };
+    update: { mutate: (input: DecisionUpdateProcedureInput) => Promise<unknown> };
+    setStatus: {
+      mutate: (input: {
+        workspaceId: string;
+        decisionId: string;
+        status: DecisionStatusInput;
+        supersededById?: string | null;
+      }) => Promise<unknown>;
+    };
+    linkTicket: {
+      mutate: (input: { workspaceId: string; decisionId: string; ticketId: string }) => Promise<unknown>;
+    };
+    linkFeature: {
+      mutate: (input: { workspaceId: string; decisionId: string; featureId: string }) => Promise<unknown>;
+    };
+    /** `linkId` is the DecisionLink id, not the ticket or feature id. */
+    unlink: {
+      mutate: (input: { workspaceId: string; linkId: string }) => Promise<unknown>;
+    };
+    confirmDraft: {
+      mutate: (input: { workspaceId: string; decisionId: string }) => Promise<unknown>;
+    };
+    rejectDraft: {
+      mutate: (input: { workspaceId: string; decisionId: string }) => Promise<unknown>;
+    };
+    deleteDraft: {
+      mutate: (input: { workspaceId: string; decisionId: string }) => Promise<unknown>;
+    };
   };
   crmApi: {
     contactList: { query: (input: { workspaceId: string; search?: string; tags?: string[]; organizationId?: string; limit?: number; cursor?: string }) => Promise<unknown> };

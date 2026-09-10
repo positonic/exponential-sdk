@@ -9,6 +9,7 @@ import { KeyResultsApi } from './keyResults.js';
 import { ProjectsApi } from './projects.js';
 import { WorkspacesApi } from './workspaces.js';
 import { ContactsApi } from './contacts.js';
+import { DecisionsApi } from './decisions.js';
 import { OrganizationsApi } from './organizations.js';
 import { PipelinesApi } from './pipelines.js';
 import { TicketsApi } from './tickets.js';
@@ -37,6 +38,7 @@ export class ExponentialClient {
   projects: ProjectsApi;
   workspaces: WorkspacesApi;
   contacts: ContactsApi;
+  decisions: DecisionsApi;
   organizations: OrganizationsApi;
   pipelines: PipelinesApi;
   tickets: TicketsApi;
@@ -64,6 +66,7 @@ export class ExponentialClient {
     this.projects = new ProjectsApi(this.client);
     this.workspaces = new WorkspacesApi(this.client);
     this.contacts = new ContactsApi(this.client);
+    this.decisions = new DecisionsApi(this.client);
     this.organizations = new OrganizationsApi(this.client);
     this.pipelines = new PipelinesApi(this.client);
     this.tickets = new TicketsApi(this.client);
@@ -240,6 +243,34 @@ export type {
   FeatureLinkPageInput,
 } from './features.js';
 export type { Area, AreaListOptions, AreaCreateInput } from './areas.js';
+export type {
+  Decision,
+  DecisionAdrRef,
+  DecisionChainRef,
+  DecisionDecider,
+  DecisionEvidenceTurn,
+  DecisionFeatureRef,
+  DecisionLink,
+  DecisionListRow,
+  DecisionMeetingRef,
+  DecisionOccurrenceRef,
+  DecisionProductRef,
+  DecisionProjectRef,
+  DecisionReviewState,
+  DecisionSource,
+  DecisionStatus,
+  DecisionTicketRef,
+  DecisionUserRef,
+  DraftDecisionsResult,
+  MeetingDecisions,
+} from './types/decision.js';
+export type {
+  DecisionCreateInput,
+  DecisionDeciderInput,
+  DecisionListOptions,
+  DecisionSetStatusInput,
+  DecisionUpdateInput,
+} from './decisions.js';
 export type {
   Meeting,
   MeetingActionSummary,
