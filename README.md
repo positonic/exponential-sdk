@@ -122,6 +122,71 @@ const projectActions = await client.actions.getProjectActions("proj-123");
 
 ---
 
+### Decisions
+
+The workspace Decision Log (ADR-0060). **An open question is a decision with
+status `OPEN`** — there is no separate model, and that is exactly what the
+"Open questions" panel on a meeting page reads.
+
+```typescript
+// Log a decision from a meeting
+await client.decisions.create({
+  workspaceId: "ws-123",
+  statement: "Ship the importer behind a flag",
+  body: "## Context\n...\n## Consequences\n...",
+  status: "ACCEPTED",
+  source: "AGENT",
+  transcriptionSessionId: "meeting-123",
+  deciders: [{ name: "Ada", email: "ada@example.com" }],
+});
+
+// Log an open question from the same meeting
+await client.decisions.create({
+  workspaceId: "ws-123",
+  statement: "Do we backfill historical rows?",
+  status: "OPEN",
+  transcriptionSessionId: "meeting-123",
+});
+
+// Both panels for one meeting, drafts included if you can edit it
+const { decisions, canLogDecision } = await client.decisions.listForMeeting("meeting-123");
+
+// The log, filtered
+const open = await client.decisions.list({ workspaceId: "ws-123", statuses: ["OPEN"] });
+
+// Answer an open question, then record what implemented it
+await client.decisions.setStatus({ workspaceId: "ws-123", decisionId: "d1", status: "ACCEPTED" });
+await client.decisions.linkTicket("ws-123", "d1", "ticket-123");
+```
+
+#### Statuses
+
+`OPEN` (open question) · `PROPOSED` · `ACCEPTED` · `SUPERSEDED` · `DEPRECATED`
+
+`SUPERSEDED` and `DEPRECATED` are reached through `setStatus`, never as a
+birth state.
+
+#### Sources
+
+`MEETING` · `MANUAL` · `AGENT`
+
+#### Evidence
+
+Evidence turns are quotes from the meeting's transcript, and the server checks
+them: the `turnIndex` must resolve to a real turn and the words must be that
+turn's (compared loosely for case, punctuation and whitespace). Turns that
+don't match are **dropped**, and `speaker`/`startTime` are replaced with the
+transcript's own values. Evidence therefore requires `transcriptionSessionId`;
+sending it without one is a `BAD_REQUEST`.
+
+```typescript
+// Let the server propose decisions from a meeting, for someone to review
+const { draftCount, discardedWithoutEvidence } =
+  await client.decisions.extractDrafts("meeting-123");
+```
+
+---
+
 ### Configuration
 
 Credentials are stored persistently using the OS keychain via [`conf`](https://github.com/sindresorhus/conf).
