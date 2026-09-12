@@ -361,4 +361,7 @@ export type {
   TimeLogOutcome,
   TimeLogResult,
   TimeLogBatchResult,
+  TimeConfirmDayResult,
 } from './time.js';
+export { segmentConversation, DEFAULT_GAP_MINUTES, ROUND_MINUTES } from './segment.js';
+export type { ConversationMessage, WorklogSegment } from './segment.js';
