@@ -361,4 +361,5 @@ export type {
   TimeLogOutcome,
   TimeLogResult,
   TimeLogBatchResult,
+  TimeConfirmDayResult,
 } from './time.js';

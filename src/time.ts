@@ -54,22 +54,38 @@ export interface TimeLogInput {
 }
 
 /**
- * `created` — a new row; `updated` — an existing PROPOSED row was replaced;
- * `left` — the row is CONFIRMED and was not touched.
+ * `created` / `updated` — proposed pieces were written; `left` — a CONFIRMED
+ * row already carries this ref and was not touched; `merged` — manual time
+ * on the same Action covers it, so the manual entries were annotated instead
+ * (V2, manual wins); `dropped` — manual time on other Actions covered every
+ * minute, nothing written.
  */
-export type TimeLogOutcome = 'created' | 'updated' | 'left';
+export type TimeLogOutcome = 'created' | 'updated' | 'left' | 'merged' | 'dropped';
 
 export interface TimeLogResult {
-  entry: TimeEntry;
+  /** The first written piece, or the untouched CONFIRMED row; null for merged/dropped. */
+  entry: TimeEntry | null;
   outcome: TimeLogOutcome;
+  /** Every piece written — several when manual time on another Action split the proposal. */
+  pieces?: TimeEntry[];
+  /** Manual entry ids whose note now carries the conversation reference. */
+  mergedInto?: string[];
+}
+
+export interface TimeConfirmDayResult {
+  /** Proposed entries flipped to CONFIRMED. */
+  confirmed: number;
 }
 
 export interface TimeLogBatchResult {
   index: number;
   success: boolean;
   sourceRef?: string;
-  entry?: TimeEntry;
+  /** Null when the outcome is `merged` or `dropped`. */
+  entry?: TimeEntry | null;
   outcome?: TimeLogOutcome;
+  pieces?: TimeEntry[];
+  mergedInto?: string[];
   error?: string;
 }
 
@@ -110,7 +126,7 @@ export class TimeApi {
       })) as TimeLogResult;
     }
     const entry = (await this.client.timeEntry.create.mutate(input)) as TimeEntry;
-    return { entry, outcome: 'created' };
+    return { entry, outcome: 'created', pieces: [entry], mergedInto: [] };
   }
 
   /**
@@ -143,6 +159,19 @@ export class TimeApi {
       }
     }
     return results;
+  }
+
+  /**
+   * Confirm a day: every PROPOSED entry of yours that starts on that local
+   * calendar day becomes CONFIRMED and the Actions' spent time moves. Human
+   * only — the server refuses agent keys, so run this with personal
+   * credentials. A day with nothing proposed returns `{ confirmed: 0 }`.
+   */
+  async confirmDay(date: Date | string, workspaceId?: string): Promise<TimeConfirmDayResult> {
+    return (await this.client.timeEntry.confirmDay.mutate({
+      date: startOfLocalDay(date),
+      workspaceId,
+    })) as TimeConfirmDayResult;
   }
 
   /**
