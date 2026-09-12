@@ -444,6 +444,10 @@ export interface TrpcClient {
     listByDateRange: {
       query: (input: { startDate: Date; endDate: Date; workspaceId?: string | null }) => Promise<unknown[]>;
     };
+    /** Human-only; `date` is the start of the day in the caller's timezone. */
+    confirmDay: {
+      mutate: (input: { date: Date; workspaceId?: string | null }) => Promise<unknown>;
+    };
   };
   decision: {
     list: {

@@ -31,6 +31,7 @@ function makeClient() {
       .fn()
       .mockResolvedValue({ entry: entry({ sourceRef: 'claude-session:s1#0' }), outcome: 'updated' }),
     listByDateRange: vi.fn().mockResolvedValue([entry()]),
+    confirmDay: vi.fn().mockResolvedValue({ confirmed: 2 }),
     upsertBySource: vi.fn().mockResolvedValue({ action: { id: 'a1', name: 'x' }, outcome: 'created' }),
   };
   const client = {
@@ -38,6 +39,7 @@ function makeClient() {
       create: { mutate: calls.create },
       upsertBySourceRef: { mutate: calls.upsertBySourceRef },
       listByDateRange: { query: calls.listByDateRange },
+      confirmDay: { mutate: calls.confirmDay },
     },
     action: { upsertBySource: { mutate: calls.upsertBySource } },
   } as unknown as TrpcClient;
@@ -51,7 +53,7 @@ describe('TimeApi.log', () => {
     expect(create).toHaveBeenCalledWith({ actionId: 'a1', startedAt: START, endedAt: END, source: 'claude-desktop' });
     expect(upsertBySourceRef).not.toHaveBeenCalled();
     expect(result.outcome).toBe('created');
-    expect(result.entry.id).toBe('e1');
+    expect(result.entry?.id).toBe('e1');
   });
 
   it('with a sourceRef upserts and passes the outcome through', async () => {
@@ -136,5 +138,14 @@ describe('ActionsApi.upsertBySource', () => {
       ticketId: 't1',
     });
     expect(result.outcome).toBe('created');
+  });
+});
+
+describe('TimeApi.confirmDay', () => {
+  it('sends the local day start and passes the count back', async () => {
+    const { api, confirmDay } = makeClient();
+    const result = await api.confirmDay('2026-09-11', 'ws1');
+    expect(confirmDay).toHaveBeenCalledWith({ date: new Date(2026, 8, 11), workspaceId: 'ws1' });
+    expect(result).toEqual({ confirmed: 2 });
   });
 });
