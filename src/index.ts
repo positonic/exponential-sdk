@@ -24,6 +24,7 @@ import { PagesApi } from './pages.js';
 import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
 import { SearchApi } from './search.js';
+import { TimeApi } from './time.js';
 
 export class ExponentialClient {
   private client: TrpcClient;
@@ -53,6 +54,8 @@ export class ExponentialClient {
   requirements: RequirementsApi;
   scopes: ScopesApi;
   search: SearchApi;
+  /** Time entries — the Daily worklog's write path (ADR-0061). */
+  time: TimeApi;
 
   constructor(private config: { token: string; apiUrl: string }) {
     this.client = createClient(this.config);
@@ -81,6 +84,7 @@ export class ExponentialClient {
     this.requirements = new RequirementsApi(this.client);
     this.scopes = new ScopesApi(this.client);
     this.search = new SearchApi(this.client);
+    this.time = new TimeApi(this.client);
   }
 }
 
@@ -104,6 +108,8 @@ export type {
 export type {
   ActionCreateInput,
   ActionUpdateInput,
+  ActionUpsertBySourceInput,
+  ActionUpsertBySourceResult,
   ActionStatus,
   TodaysActions,
   TodaysActionsGroup,
@@ -346,3 +352,13 @@ export type {
   SetEntityTagsResult,
 } from './labels.js';
 export { isTRPCError, TRPCClientError };
+export { TimeApi } from './time.js';
+export type {
+  TimeEntry,
+  TimeEntryStatus,
+  TimeEntrySource,
+  TimeLogInput,
+  TimeLogOutcome,
+  TimeLogResult,
+  TimeLogBatchResult,
+} from './time.js';

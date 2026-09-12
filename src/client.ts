@@ -265,6 +265,26 @@ type DecisionUpdateProcedureInput = {
   adrDocumentId?: string | null;
 };
 
+type ActionUpsertBySourceInput = {
+  sourceType: string;
+  sourceId: string;
+  name: string;
+  workspaceId: string;
+  description?: string;
+  projectId?: string | null;
+  ticketId?: string | null;
+};
+
+type TimeEntryCreateInput = {
+  actionId: string;
+  startedAt: Date;
+  endedAt: Date;
+  source?: 'manual' | 'claude-desktop' | 'agent-run';
+  status?: 'PROPOSED' | 'CONFIRMED';
+  sourceRef?: string;
+  note?: string;
+};
+
 export interface TrpcClient {
   transcription: {
     getAllTranscriptions: {
@@ -306,6 +326,8 @@ export interface TrpcClient {
     getProjectActions: { query: (input: { projectId: string; assigneeId?: string }) => Promise<unknown[]> };
     create: { mutate: (input: ActionCreateInput) => Promise<unknown> };
     update: { mutate: (input: ActionUpdateInput) => Promise<unknown> };
+    /** Idempotent create keyed on (workspaceId, sourceType, sourceId). */
+    upsertBySource: { mutate: (input: ActionUpsertBySourceInput) => Promise<unknown> };
     bulkReschedule: { mutate: (input: { actionIds: string[]; dueDate: Date | null }) => Promise<unknown> };
     bulkDefer: { mutate: (input: { actionIds: string[] }) => Promise<unknown> };
   };
@@ -412,6 +434,16 @@ export interface TrpcClient {
     create: { mutate: (input: { pageId: string; body: string }) => Promise<unknown> };
     update: { mutate: (input: { commentId: string; body: string }) => Promise<unknown> };
     delete: { mutate: (input: { commentId: string }) => Promise<unknown> };
+  };
+  timeEntry: {
+    /** Explicit-bounds entry; never touches the running Timer (ADR-0061). */
+    create: { mutate: (input: TimeEntryCreateInput) => Promise<unknown> };
+    upsertBySourceRef: {
+      mutate: (input: TimeEntryCreateInput & { sourceRef: string }) => Promise<unknown>;
+    };
+    listByDateRange: {
+      query: (input: { startDate: Date; endDate: Date; workspaceId?: string | null }) => Promise<unknown[]>;
+    };
   };
   decision: {
     list: {
