@@ -448,6 +448,10 @@ export interface TrpcClient {
     confirmDay: {
       mutate: (input: { date: Date; workspaceId?: string | null }) => Promise<unknown>;
     };
+    /** `date` is the start of the day in the caller's timezone; an agent key reads its owner's day. */
+    dayReport: {
+      query: (input: { date: Date; workspaceId?: string | null }) => Promise<unknown>;
+    };
   };
   decision: {
     list: {

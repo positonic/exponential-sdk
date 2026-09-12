@@ -362,6 +362,10 @@ export type {
   TimeLogResult,
   TimeLogBatchResult,
   TimeConfirmDayResult,
+  DayReport,
+  DayReportEntry,
+  DayReportProductRow,
+  DayReportActionRow,
 } from './time.js';
 export { segmentConversation, DEFAULT_GAP_MINUTES, ROUND_MINUTES } from './segment.js';
 export type { ConversationMessage, WorklogSegment } from './segment.js';
