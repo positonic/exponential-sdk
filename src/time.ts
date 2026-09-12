@@ -72,6 +72,65 @@ export interface TimeLogResult {
   mergedInto?: string[];
 }
 
+export interface DayReportEntry extends TimeEntry {
+  /** Whole minutes inside the day window (a running entry ends "now"). */
+  minutes: number;
+  /** `ticket.productId ?? project.productId ?? null`. */
+  productId: string | null;
+  productName: string | null;
+  isAgentRun: boolean;
+  flags: Array<'forgotten-timer'>;
+  action: TimeEntry['action'] & {
+    ticketId: string | null;
+    project: { id: string; name: string; productId: string | null } | null;
+    ticket: { id: string; number: number; shortId: string | null; title: string; productId: string } | null;
+  };
+}
+
+export interface DayReportProductRow {
+  /** Null is Unassigned time. */
+  productId: string | null;
+  name: string;
+  /** Overlap-split minutes; the rows sum to `attentionMinutes`. */
+  minutes: number;
+}
+
+export interface DayReportActionRow {
+  actionId: string;
+  name: string;
+  /** Overlap-split minutes; the rows sum to `attentionMinutes`. */
+  minutes: number;
+  /** Plain sum of the Action's non-agent-run entries. */
+  sessionMinutes: number;
+  agentRunMinutes: number;
+  productId: string | null;
+  productName: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  ticket: { id: string; number: number; shortId: string | null; title: string } | null;
+  proposedCount: number;
+}
+
+/**
+ * One day of a person's time — the same numbers the `/time` Day tab shows.
+ * Attention minutes count each covered minute once; session minutes are the
+ * plain sum; Agent-run time is kept off both and reported on its own.
+ */
+export interface DayReport {
+  dayStart: Date;
+  dayEnd: Date;
+  entries: DayReportEntry[];
+  attentionMinutes: number;
+  sessionMinutes: number;
+  agentRunMinutes: number;
+  byProduct: DayReportProductRow[];
+  byAction: DayReportActionRow[];
+  /** Non-agent-run entries whose Action has neither Ticket nor Project. */
+  unassignedCount: number;
+  proposedCount: number;
+  flags: Array<{ entryId: string; flag: 'forgotten-timer' }>;
+}
+
 export interface TimeConfirmDayResult {
   /** Proposed entries flipped to CONFIRMED. */
   confirmed: number;
@@ -172,6 +231,20 @@ export class TimeApi {
       date: startOfLocalDay(date),
       workspaceId,
     })) as TimeConfirmDayResult;
+  }
+
+  /**
+   * The day report for one local calendar day: entries joined to Action,
+   * Ticket, Project and Product, attention / session / agent-run minutes,
+   * the overlap-split roll-ups and the counts — exactly what the `/time` Day
+   * tab and the Daily summary's Yesterday line read. Under an agent key the
+   * report is the OWNER's day.
+   */
+  async dayReport(date: Date | string, workspaceId?: string): Promise<DayReport> {
+    return (await this.client.timeEntry.dayReport.query({
+      date: startOfLocalDay(date),
+      workspaceId,
+    })) as DayReport;
   }
 
   /**

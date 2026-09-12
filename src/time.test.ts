@@ -32,6 +32,7 @@ function makeClient() {
       .mockResolvedValue({ entry: entry({ sourceRef: 'claude-session:s1#0' }), outcome: 'updated' }),
     listByDateRange: vi.fn().mockResolvedValue([entry()]),
     confirmDay: vi.fn().mockResolvedValue({ confirmed: 2 }),
+    dayReport: vi.fn().mockResolvedValue({ attentionMinutes: 90, sessionMinutes: 120, agentRunMinutes: 0, byProduct: [], byAction: [], entries: [], unassignedCount: 0, proposedCount: 1, flags: [] }),
     upsertBySource: vi.fn().mockResolvedValue({ action: { id: 'a1', name: 'x' }, outcome: 'created' }),
   };
   const client = {
@@ -40,6 +41,7 @@ function makeClient() {
       upsertBySourceRef: { mutate: calls.upsertBySourceRef },
       listByDateRange: { query: calls.listByDateRange },
       confirmDay: { mutate: calls.confirmDay },
+      dayReport: { query: calls.dayReport },
     },
     action: { upsertBySource: { mutate: calls.upsertBySource } },
   } as unknown as TrpcClient;
@@ -147,5 +149,15 @@ describe('TimeApi.confirmDay', () => {
     const result = await api.confirmDay('2026-09-11', 'ws1');
     expect(confirmDay).toHaveBeenCalledWith({ date: new Date(2026, 8, 11), workspaceId: 'ws1' });
     expect(result).toEqual({ confirmed: 2 });
+  });
+});
+
+describe('TimeApi.dayReport', () => {
+  it('sends the local day start and returns the report', async () => {
+    const { api, dayReport } = makeClient();
+    const report = await api.dayReport('2026-09-11', 'ws1');
+    expect(dayReport).toHaveBeenCalledWith({ date: new Date(2026, 8, 11), workspaceId: 'ws1' });
+    expect(report.attentionMinutes).toBe(90);
+    expect(report.sessionMinutes).toBe(120);
   });
 });
