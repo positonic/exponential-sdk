@@ -49,6 +49,27 @@ export interface ActionUpdateInput {
   blockedByIds?: string[];
 }
 
+export interface ActionUpsertBySourceInput {
+  /** Convention for the Daily worklog: `claude-session`. */
+  sourceType: string;
+  /** The conversation id — re-running with the same pair updates, never duplicates. */
+  sourceId: string;
+  name: string;
+  workspaceId: string;
+  description?: string;
+  /** Must live in `workspaceId`, or the call is NOT_FOUND. */
+  projectId?: string | null;
+  /** Must belong to a product in `workspaceId`, or the call is NOT_FOUND. */
+  ticketId?: string | null;
+}
+
+export interface ActionUpsertBySourceResult {
+  action: Action & {
+    ticket?: { id: string; number: number; shortId: string | null; productId: string } | null;
+  };
+  outcome: 'created' | 'updated';
+}
+
 /** One action as returned inside a {@link TodaysActions} group. */
 export interface TodaysActionRow {
   id: string;
@@ -234,5 +255,15 @@ export class ActionsApi {
 
   async update(input: ActionUpdateInput): Promise<Action> {
     return await this.client.action.update.mutate(input) as Action;
+  }
+
+  /**
+   * One Action per external source: find by (workspaceId, sourceType,
+   * sourceId), refresh its name and links, else create it. `outcome` says
+   * which happened. Agents may call this; the created Action records the
+   * agent's shadow user as creator with `source: "agent"` (ADR-0049).
+   */
+  async upsertBySource(input: ActionUpsertBySourceInput): Promise<ActionUpsertBySourceResult> {
+    return await this.client.action.upsertBySource.mutate(input) as ActionUpsertBySourceResult;
   }
 }

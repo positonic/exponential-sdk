@@ -49,7 +49,9 @@ export interface Action {
     name: string;
   } | null;
   assignees?: Array<{
-    user: {
+    /** Bare form returned by `action.upsertBySource`. */
+    userId?: string;
+    user?: {
       id: string;
       name: string | null;
       email: string | null;
