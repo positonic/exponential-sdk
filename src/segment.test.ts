@@ -49,6 +49,48 @@ describe('segmentConversation', () => {
     expect(segments).toEqual([{ start: t(10, 0), end: t(10, 50), humanTurns: 1 }]);
   });
 
+  it('a short assistant burst long after the person went quiet does not stretch their segment', () => {
+    // The person spoke at 09:00, the assistant said something four days later just
+    // before they resumed. That burst is not the reply: it used to extend the first
+    // segment across all four days.
+    const later = (h: number, m: number) => new Date(2026, 8, 15, h, m);
+    expect(
+      segmentConversation([
+        u(9, 0),
+        a(9, 5),
+        { at: later(15, 40), role: 'assistant' },
+        { at: later(15, 47), role: 'user' },
+        { at: later(15, 50), role: 'assistant' },
+      ]),
+    ).toEqual([
+      { start: t(9, 0), end: t(9, 5), humanTurns: 1 },
+      { start: later(15, 45), end: later(15, 50), humanTurns: 1 },
+    ]);
+  });
+
+  it('an agent-run ends at a silence longer than two gaps', () => {
+    // Two unattended stretches hours apart are two agent-runs, not one that covers
+    // the silence between them. (A silence up to two gaps is a long tool call and
+    // stays inside the run — see the 11:00 → 12:00 run above.)
+    expect(
+      segmentConversation([
+        u(10, 0),
+        a(10, 5),
+        a(10, 40),
+        a(10, 50),
+        a(11, 0),
+        a(11, 15),
+        a(14, 0),
+        a(14, 15),
+        a(14, 35),
+      ]),
+    ).toEqual([
+      { start: t(10, 0), end: t(10, 5), humanTurns: 1 },
+      { start: t(10, 40), end: t(11, 15), humanTurns: 0 },
+      { start: t(14, 0), end: t(14, 35), humanTurns: 0 },
+    ]);
+  });
+
   it('a run with no human message at all is agent-run when it lasts longer than the gap', () => {
     expect(segmentConversation([a(2, 0), a(2, 20), a(2, 45)])).toEqual([
       { start: t(2, 0), end: t(2, 45), humanTurns: 0 },
