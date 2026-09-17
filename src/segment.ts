@@ -43,7 +43,14 @@ function roundUp(ms: number): Date {
  *    rest of that run — when it lasts longer than `gapMinutes` itself — is
  *    a separate segment with `humanTurns: 0`, and the person's segment ends
  *    at the last message inside the window. A shorter tail is just the reply
- *    and stays in the person's segment;
+ *    and stays in the person's segment — but only when it starts within
+ *    `gapMinutes` of the window closing (two gaps after the person's last
+ *    message). A short burst that comes later, e.g. the assistant speaking
+ *    just before the person resumes days afterwards, belongs to no segment;
+ *  - an agent-run ends at a silence longer than two gaps: whatever the
+ *    assistant says after it starts a new candidate run, so a Monitor ticking
+ *    every few hours is not one unbroken stretch. A shorter silence is a long
+ *    tool call inside the run;
  *  - every segment is rounded outward to 5 minutes.
  */
 export function segmentConversation(
@@ -70,7 +77,7 @@ export function segmentConversation(
     if (run.end - run.start > gapMs) {
       closeSegment();
       out.push({ start: roundDown(run.start), end: roundUp(run.end), humanTurns: 0 });
-    } else if (seg) {
+    } else if (seg && run.start - seg.lastUserAt <= 2 * gapMs) {
       seg.end = Math.max(seg.end, run.end);
     }
     run = null;
@@ -87,7 +94,12 @@ export function segmentConversation(
       continue;
     }
     if (run) {
-      run.end = m.at;
+      if (m.at - run.end > 2 * gapMs) {
+        resolveRun();
+        run = { start: m.at, end: m.at };
+      } else {
+        run.end = m.at;
+      }
     } else if (!seg || m.at - seg.lastUserAt > gapMs) {
       run = { start: m.at, end: m.at };
     } else {
