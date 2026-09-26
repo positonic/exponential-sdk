@@ -3,6 +3,8 @@ import type { Pipeline, PipelineStage, Deal } from './types/pipeline.js';
 
 export interface DealCreateInput {
   workspaceId: string;
+  /** Target pipeline. Omitted → the workspace's default (oldest) pipeline. */
+  pipelineId?: string;
   stageId: string;
   title: string;
   description?: string;
@@ -34,19 +36,36 @@ export interface DealMoveInput {
   stageOrder: number;
 }
 
+/**
+ * Only send `pipelineId` when one was given, so callers on the old
+ * single-pipeline signature produce byte-identical requests.
+ */
+function withPipeline(workspaceId: string, pipelineId?: string): { workspaceId: string; pipelineId?: string } {
+  return pipelineId ? { workspaceId, pipelineId } : { workspaceId };
+}
+
 export class PipelinesApi {
   constructor(private client: TrpcClient) {}
 
-  async get(workspaceId: string): Promise<Pipeline | null> {
-    return await this.client.crmApi.pipelineGet.query({ workspaceId }) as Pipeline | null;
+  /**
+   * Every pipeline in the workspace the caller can view, oldest first. The
+   * first entry is the one the server falls back to when no `pipelineId` is
+   * given (ADR-0033: a workspace may hold many pipelines).
+   */
+  async list(workspaceId: string): Promise<Pipeline[]> {
+    return await this.client.crmApi.pipelineList.query({ workspaceId }) as Pipeline[];
   }
 
-  async getStages(workspaceId: string): Promise<PipelineStage[]> {
-    return await this.client.crmApi.pipelineGetStages.query({ workspaceId }) as PipelineStage[];
+  async get(workspaceId: string, pipelineId?: string): Promise<Pipeline | null> {
+    return await this.client.crmApi.pipelineGet.query(withPipeline(workspaceId, pipelineId)) as Pipeline | null;
   }
 
-  async listDeals(workspaceId: string): Promise<Deal[]> {
-    return await this.client.crmApi.dealList.query({ workspaceId }) as Deal[];
+  async getStages(workspaceId: string, pipelineId?: string): Promise<PipelineStage[]> {
+    return await this.client.crmApi.pipelineGetStages.query(withPipeline(workspaceId, pipelineId)) as PipelineStage[];
+  }
+
+  async listDeals(workspaceId: string, pipelineId?: string): Promise<Deal[]> {
+    return await this.client.crmApi.dealList.query(withPipeline(workspaceId, pipelineId)) as Deal[];
   }
 
   async getDeal(id: string): Promise<Deal> {

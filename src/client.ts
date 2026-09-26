@@ -524,11 +524,12 @@ export interface TrpcClient {
     organizationList: { query: (input: { workspaceId: string; search?: string; industry?: string; limit?: number; cursor?: string }) => Promise<unknown> };
     organizationGet: { query: (input: { id: string }) => Promise<unknown> };
     organizationCreate: { mutate: (input: { workspaceId: string; name: string; websiteUrl?: string | null; logoUrl?: string | null; description?: string; industry?: string; size?: string }) => Promise<unknown> };
-    pipelineGet: { query: (input: { workspaceId: string }) => Promise<unknown> };
-    pipelineGetStages: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
-    dealList: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
+    pipelineList: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
+    pipelineGet: { query: (input: { workspaceId: string; pipelineId?: string }) => Promise<unknown> };
+    pipelineGetStages: { query: (input: { workspaceId: string; pipelineId?: string }) => Promise<unknown[]> };
+    dealList: { query: (input: { workspaceId: string; pipelineId?: string }) => Promise<unknown[]> };
     dealGet: { query: (input: { id: string }) => Promise<unknown> };
-    dealCreate: { mutate: (input: { workspaceId: string; stageId: string; title: string; description?: string; value?: number; currency?: string; probability?: number; expectedCloseDate?: Date; contactId?: string; organizationId?: string; assignedToId?: string }) => Promise<unknown> };
+    dealCreate: { mutate: (input: { workspaceId: string; pipelineId?: string; stageId: string; title: string; description?: string; value?: number; currency?: string; probability?: number; expectedCloseDate?: Date; contactId?: string; organizationId?: string; assignedToId?: string }) => Promise<unknown> };
     dealUpdate: { mutate: (input: { id: string; title?: string; description?: string | null; value?: number | null; currency?: string; probability?: number | null; expectedCloseDate?: Date | null; contactId?: string | null; organizationId?: string | null; assignedToId?: string | null }) => Promise<unknown> };
     dealMove: { mutate: (input: { id: string; stageId: string; stageOrder: number }) => Promise<unknown> };
     dealDelete: { mutate: (input: { id: string }) => Promise<unknown> };
