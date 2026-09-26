@@ -70,6 +70,7 @@ type ActionCreateInput = {
   status?: ActionStatus;
   epicId?: string;
   effortEstimate?: number;
+  /** Blocker action ids; see ActionCreateInput in actions.ts. */
   blockedByIds?: string[];
 };
 
@@ -175,6 +176,7 @@ type ActionUpdateInput = {
   kanbanStatus?: ActionKanbanStatus;
   epicId?: string | null;
   effortEstimate?: number | null;
+  /** Replaces the blocker set; `undefined` leaves it, `[]` clears it. */
   blockedByIds?: string[];
 };
 
@@ -324,6 +326,10 @@ export interface TrpcClient {
     getOverdueTriage: { query: (input?: TodayInput) => Promise<unknown> };
     getByDateRange: { query: (input: DateRangeInput) => Promise<unknown[]> };
     getProjectActions: { query: (input: { projectId: string; assigneeId?: string }) => Promise<unknown[]> };
+    getById: { query: (input: { id: string }) => Promise<unknown> };
+    searchForDependencies: {
+      query: (input: { query: string; workspaceId?: string; excludeId?: string; limit?: number }) => Promise<unknown[]>;
+    };
     create: { mutate: (input: ActionCreateInput) => Promise<unknown> };
     update: { mutate: (input: ActionUpdateInput) => Promise<unknown> };
     /** Idempotent create keyed on (workspaceId, sourceType, sourceId). */

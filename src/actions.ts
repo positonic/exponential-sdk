@@ -1,5 +1,5 @@
 import type { TrpcClient } from './client.js';
-import type { Action, KanbanStatus, Priority } from './types/action.js';
+import type { Action, ActionBlocker, ActionDependencyEdge, KanbanStatus, Priority } from './types/action.js';
 
 export interface ActionsListOptions {
   projectId?: string;
@@ -28,6 +28,11 @@ export interface ActionCreateInput {
   status?: ActionStatus;
   epicId?: string;
   effortEstimate?: number;
+  /**
+   * Ids (CUIDs) of the actions this one is blocked by. Each must be a
+   * readable action in the same workspace (NOT_FOUND otherwise); a self-link
+   * or a cycle is refused with BAD_REQUEST.
+   */
   blockedByIds?: string[];
 }
 
@@ -46,7 +51,41 @@ export interface ActionUpdateInput {
   kanbanStatus?: KanbanStatus;
   epicId?: string | null;
   effortEstimate?: number | null;
+  /**
+   * Ids (CUIDs) of the actions this one is blocked by. The list REPLACES the
+   * current set: omit the field to leave blockers untouched, pass `[]` to
+   * clear them all. Each id must be a readable action in the same workspace
+   * (NOT_FOUND otherwise); a self-link or a cycle is refused with BAD_REQUEST
+   * ("This would create a dependency cycle.").
+   */
   blockedByIds?: string[];
+}
+
+export interface ActionDependencySearchOptions {
+  query: string;
+  /** Scope to a workspace the caller is a member of; without it, only the caller's own actions. */
+  workspaceId?: string;
+  /** Usually the action being edited, so it cannot pick itself. */
+  excludeId?: string;
+  /** Server default is 10. */
+  limit?: number;
+}
+
+/**
+ * The blockers of an action: the `dependsOn` row of each `depsOut` edge.
+ * Empty when the procedure did not include the relation.
+ */
+export function getBlockers(action: Pick<Action, 'depsOut'>): ActionBlocker[] {
+  return (action.depsOut ?? []).map((edge: ActionDependencyEdge) => edge.dependsOn);
+}
+
+/**
+ * The blockers that still block: those whose status is `ACTIVE`. Whether the
+ * action itself is blocked is `action.isBlocked`, computed by the server —
+ * do not derive it from this.
+ */
+export function openBlockers(action: Pick<Action, 'depsOut'>): ActionBlocker[] {
+  return getBlockers(action).filter((blocker) => blocker.status === 'ACTIVE');
 }
 
 export interface ActionUpsertBySourceInput {
@@ -247,6 +286,19 @@ export class ActionsApi {
       projectId,
       assigneeId,
     }) as Action[];
+  }
+
+  /** One action with its blockers (`depsOut`, `openBlockerCount`, `isBlocked`). */
+  async get(id: string): Promise<Action> {
+    return await this.client.action.getById.query({ id }) as Action;
+  }
+
+  /**
+   * Candidate actions for a "blocked by" picker: open actions whose name
+   * contains `query`, access-scoped. Results carry no `depsOut`.
+   */
+  async searchForDependencies(options: ActionDependencySearchOptions): Promise<ActionBlocker[]> {
+    return await this.client.action.searchForDependencies.query(options) as ActionBlocker[];
   }
 
   async create(input: ActionCreateInput): Promise<Action> {

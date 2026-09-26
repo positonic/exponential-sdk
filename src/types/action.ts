@@ -21,6 +21,24 @@ export type Priority =
   | 'Watch'
   | 'Someday Maybe';
 
+/**
+ * One blocker of an action, as the server returns it under `depsOut[].dependsOn`
+ * (ADR-0062). A blocker is *open* while `status === 'ACTIVE'`.
+ */
+export interface ActionBlocker {
+  id: string;
+  name: string;
+  status: string;
+  kanbanStatus: string | null;
+  projectId: string | null;
+}
+
+/** One `ActionDependency` edge: "this action is blocked by `dependsOn`". */
+export interface ActionDependencyEdge {
+  id: string;
+  dependsOn: ActionBlocker;
+}
+
 export interface Action {
   id: string;
   name: string;
@@ -39,6 +57,20 @@ export interface Action {
   createdAt: Date;
   updatedAt: Date;
   source: string;
+  /**
+   * The actions this one is blocked by, one edge per blocker. Carried by
+   * `action.getAll`, `getById`, `getProjectActions` and `getByTranscription`;
+   * absent on procedures that do not include the relation (e.g. kanban).
+   * The reverse direction ("what does this action block") is not exposed.
+   */
+  depsOut?: ActionDependencyEdge[];
+  /** Server-derived: how many of `depsOut` are still `ACTIVE`. */
+  openBlockerCount?: number;
+  /**
+   * Server-derived: `openBlockerCount > 0` and the action itself is `ACTIVE`.
+   * Do not re-derive this client-side.
+   */
+  isBlocked?: boolean;
   project?: {
     id: string;
     name: string;
@@ -85,6 +117,10 @@ export interface ActionOutput {
   }>;
   createdAt: string;
   completedAt: string | null;
+  /** Passed through from the server unchanged; absent when the procedure omits it. */
+  depsOut?: ActionDependencyEdge[];
+  openBlockerCount?: number;
+  isBlocked?: boolean;
 }
 
 export interface ActionsListOutput {

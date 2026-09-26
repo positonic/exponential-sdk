@@ -112,6 +112,36 @@ const todo = await client.actions.getKanban({ status: "TODO" });
 const projectActions = await client.actions.getProjectActions("proj-123");
 ```
 
+#### Action dependencies
+
+Every action read that includes the relation (`list`, `get`, `getProjectActions`)
+carries `depsOut` (one edge per blocker), `openBlockerCount` and `isBlocked`,
+all computed server-side (ADR-0062 in the app repo). A blocker is *open* while
+its status is `ACTIVE`; an action is *blocked* while it is `ACTIVE` with at
+least one open blocker. Do not re-derive `isBlocked` client-side.
+
+```typescript
+import { getBlockers, openBlockers } from "exponential-sdk";
+
+const action = await client.actions.get("act-123");
+action.isBlocked;          // boolean, from the server
+getBlockers(action);       // every blocker: { id, name, status, kanbanStatus, projectId }
+openBlockers(action);      // only those still ACTIVE
+
+// Writes: blockedByIds REPLACES the set. Omit to leave it, [] to clear.
+await client.actions.update({ id: "act-123", blockedByIds: ["act-1", "act-2"] });
+await client.actions.update({ id: "act-123", blockedByIds: [] });
+
+// Candidates for a "blocked by" picker (access-scoped, open actions only)
+const candidates = await client.actions.searchForDependencies({
+  query: "deploy", workspaceId: "ws-123", excludeId: "act-123",
+});
+```
+
+The server answers `NOT_FOUND` for an id that is not a readable action in the
+same workspace and `BAD_REQUEST` for a self-link or a cycle. The reverse
+direction ("what does this action block") is not exposed by the API.
+
 #### Kanban Statuses
 
 `BACKLOG` · `TODO` · `IN_PROGRESS` · `IN_REVIEW` · `DONE` · `CANCELLED`

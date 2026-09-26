@@ -100,13 +100,17 @@ export {
 export type { ExponentialConfig } from './config.js';
 export type {
   Action,
+  ActionBlocker,
+  ActionDependencyEdge,
   ActionOutput,
   ActionsListOutput,
   KanbanStatus,
   Priority,
 } from './types/action.js';
+export { getBlockers, openBlockers } from './actions.js';
 export type {
   ActionCreateInput,
+  ActionDependencySearchOptions,
   ActionUpdateInput,
   ActionUpsertBySourceInput,
   ActionUpsertBySourceResult,
