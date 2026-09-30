@@ -1,5 +1,13 @@
 import { createTRPCClient, httpBatchLink, TRPCClientError } from '@trpc/client';
 import superjson from 'superjson';
+import type {
+  CeremonyAddAgendaItemInput,
+  CeremonyCreateInput,
+  CeremonyImportInput,
+  CeremonyListOccurrencesInput,
+  CeremonySaveMyUpdateInput,
+  CeremonyUpdateInput,
+} from './ceremonies.js';
 
 type ActionInput = {
   assigneeId?: string;
@@ -544,6 +552,69 @@ export interface TrpcClient {
     deleteDraft: {
       mutate: (input: { workspaceId: string; decisionId: string }) => Promise<unknown>;
     };
+  };
+  // Ceremonies (ADR-0059). Everything is workspace-scoped except
+  // `listForProject` (project access) and attach/detach (meeting edit access).
+  ceremony: {
+    templates: { query: () => Promise<unknown[]> };
+    list: {
+      query: (input: { workspaceId: string; includeInactive?: boolean }) => Promise<unknown[]>;
+    };
+    listForProject: { query: (input: { projectId: string }) => Promise<unknown[]> };
+    get: { query: (input: { workspaceId: string; id: string }) => Promise<unknown> };
+    listOccurrences: { query: (input: CeremonyListOccurrencesInput) => Promise<unknown[]> };
+    getOccurrence: {
+      query: (input: { workspaceId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    myOccurrenceUpdate: {
+      query: (input: { workspaceId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    occurrenceUpdateSummary: {
+      query: (input: { workspaceId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    draftMyOccurrenceUpdate: {
+      mutate: (input: { workspaceId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    saveMyOccurrenceUpdate: { mutate: (input: CeremonySaveMyUpdateInput) => Promise<unknown> };
+    generateAgenda: {
+      mutate: (input: { workspaceId: string; occurrenceId: string; circulate?: boolean }) => Promise<unknown>;
+    };
+    skipOccurrence: {
+      mutate: (input: { workspaceId: string; occurrenceId: string; reason: string }) => Promise<unknown>;
+    };
+    unskipOccurrence: {
+      mutate: (input: { workspaceId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    resolveAgendaItem: {
+      mutate: (input: {
+        workspaceId: string;
+        occurrenceId: string;
+        itemId: string;
+        resolved: boolean;
+      }) => Promise<unknown>;
+    };
+    addAgendaItem: { mutate: (input: CeremonyAddAgendaItemInput) => Promise<unknown> };
+    reorderAgendaItems: {
+      mutate: (input: {
+        workspaceId: string;
+        occurrenceId: string;
+        sectionKey: string;
+        itemIds: string[];
+      }) => Promise<unknown>;
+    };
+    postAgendaToMatrix: {
+      mutate: (input: { workspaceId: string; occurrenceId: string; confirmRepost?: boolean }) => Promise<unknown>;
+    };
+    create: { mutate: (input: CeremonyCreateInput) => Promise<unknown> };
+    update: { mutate: (input: CeremonyUpdateInput) => Promise<unknown> };
+    importDefinitions: { mutate: (input: CeremonyImportInput) => Promise<unknown[]> };
+    backfillAttachments: {
+      mutate: (input: { workspaceId: string; dryRun: boolean }) => Promise<unknown>;
+    };
+    attachMeeting: {
+      mutate: (input: { meetingId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    detachMeeting: { mutate: (input: { meetingId: string }) => Promise<unknown> };
   };
   crmApi: {
     contactList: { query: (input: { workspaceId: string; search?: string; tags?: string[]; organizationId?: string; limit?: number; cursor?: string }) => Promise<unknown> };

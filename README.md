@@ -122,6 +122,42 @@ const projectActions = await client.actions.getProjectActions("proj-123");
 
 ---
 
+### Ceremonies
+
+Recurring meeting definitions (ADR-0059) and their scheduled **occurrences**
+(the page at `/w/<slug>/ceremonies/<ceremonyId>/<occurrenceId>`).
+
+```typescript
+// Definitions (Settings → Ceremonies)
+const ceremonies = await client.ceremonies.list("ws-123"); // { includeInactive: true } for retired ones
+const ceremony = await client.ceremonies.get("ws-123", "cer-123"); // + participants, recent/upcoming occurrences
+
+// One meeting instance: agenda snapshot, recordings, notes page id, skip proposal
+const occ = await client.ceremonies.getOccurrence("ws-123", "occ-123");
+const notes = occ.notesPageId ? await client.pages.get(occ.notesPageId) : null;
+
+// Occurrences in a window
+await client.ceremonies.listOccurrences({ workspaceId: "ws-123", from, to, ceremonyId: "cer-123" });
+
+// Async updates (standups)
+await client.ceremonies.updateSummary("ws-123", "occ-123");
+await client.ceremonies.saveMyUpdate({ workspaceId: "ws-123", occurrenceId: "occ-123", answers: { done: "…" }, submit: true });
+
+// Agenda and lifecycle (owner, or workspace owner/admin, for generate/skip/post)
+await client.ceremonies.generateAgenda("ws-123", "occ-123", { circulate: true });
+await client.ceremonies.addAgendaItem({ workspaceId: "ws-123", occurrenceId: "occ-123", sectionKey: "blockers", title: "Pricing" });
+await client.ceremonies.skipOccurrence("ws-123", "occ-123", "Nothing to discuss");
+await client.ceremonies.attachMeeting("meeting-123", "occ-123");
+
+// Write definitions
+await client.ceremonies.create({ workspaceId: "ws-123", name: "Weekly Planning", cadenceRule: "FREQ=WEEKLY;BYDAY=MO;BYHOUR=10;BYMINUTE=0", timezone: "Europe/Madrid", startsOn: new Date("2026-10-05") });
+await client.ceremonies.update({ workspaceId: "ws-123", id: "cer-123", isActive: false });
+```
+
+Decisions logged in an occurrence carry its `occurrenceId` (see Decisions below).
+
+---
+
 ### Decisions
 
 The workspace Decision Log (ADR-0060). **An open question is a decision with
