@@ -8,6 +8,7 @@ import { GoalsApi } from './goals.js';
 import { KeyResultsApi } from './keyResults.js';
 import { ProjectsApi } from './projects.js';
 import { WorkspacesApi } from './workspaces.js';
+import { CeremoniesApi } from './ceremonies.js';
 import { ContactsApi } from './contacts.js';
 import { DecisionsApi } from './decisions.js';
 import { OrganizationsApi } from './organizations.js';
@@ -38,6 +39,8 @@ export class ExponentialClient {
   keyResults: KeyResultsApi;
   projects: ProjectsApi;
   workspaces: WorkspacesApi;
+  /** Ceremonies and their occurrences (ADR-0059). */
+  ceremonies: CeremoniesApi;
   contacts: ContactsApi;
   decisions: DecisionsApi;
   organizations: OrganizationsApi;
@@ -68,6 +71,7 @@ export class ExponentialClient {
     this.goals = new GoalsApi(this.client, this.keyResults);
     this.projects = new ProjectsApi(this.client);
     this.workspaces = new WorkspacesApi(this.client);
+    this.ceremonies = new CeremoniesApi(this.client);
     this.contacts = new ContactsApi(this.client);
     this.decisions = new DecisionsApi(this.client);
     this.organizations = new OrganizationsApi(this.client);
@@ -277,6 +281,51 @@ export type {
   DecisionSetStatusInput,
   DecisionUpdateInput,
 } from './decisions.js';
+export { CeremoniesApi } from './ceremonies.js';
+export type {
+  Ceremony,
+  CeremonyAgenda,
+  CeremonyAgendaItem,
+  CeremonyAgendaMatrixPost,
+  CeremonyAgendaRefType,
+  CeremonyAgendaResult,
+  CeremonyAgendaSection,
+  CeremonyAgendaTemplateSection,
+  CeremonyBackfillResult,
+  CeremonyBackfillRow,
+  CeremonyGenerateAgendaResult,
+  CeremonyImportResult,
+  CeremonyKind,
+  CeremonyMatrixPostResult,
+  CeremonyMeetingAttachment,
+  CeremonyMyUpdate,
+  CeremonyNamedRef,
+  CeremonyOccurrence,
+  CeremonyOccurrenceListRow,
+  CeremonyOccurrenceRow,
+  CeremonyOccurrenceStatus,
+  CeremonyParticipantUpdate,
+  CeremonyRecord,
+  CeremonyRecordedMeeting,
+  CeremonySkipProposal,
+  CeremonySkipResult,
+  CeremonySummary,
+  CeremonyTemplate,
+  CeremonyUpdateQuestion,
+  CeremonyUpdateSummary,
+  CeremonyUserRef,
+  CeremonyWriteResult,
+  ProjectCeremony,
+} from './types/ceremony.js';
+export type {
+  CeremonyAddAgendaItemInput,
+  CeremonyCreateInput,
+  CeremonyImportDefinition,
+  CeremonyImportInput,
+  CeremonyListOccurrencesInput,
+  CeremonySaveMyUpdateInput,
+  CeremonyUpdateInput,
+} from './ceremonies.js';
 export type {
   Meeting,
   MeetingActionSummary,
