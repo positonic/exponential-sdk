@@ -25,6 +25,7 @@ import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
 import { SearchApi } from './search.js';
 import { TimeApi } from './time.js';
+import { AgentRunsApi } from './agentRuns.js';
 
 export class ExponentialClient {
   private client: TrpcClient;
@@ -56,6 +57,8 @@ export class ExponentialClient {
   search: SearchApi;
   /** Time entries — the Daily worklog's write path (ADR-0061). */
   time: TimeApi;
+  /** Agent runs — the local runner's claim/heartbeat/append/finish (ADR-0067); agent-key only. */
+  agentRuns: AgentRunsApi;
 
   constructor(private config: { token: string; apiUrl: string }) {
     this.client = createClient(this.config);
@@ -85,6 +88,7 @@ export class ExponentialClient {
     this.scopes = new ScopesApi(this.client);
     this.search = new SearchApi(this.client);
     this.time = new TimeApi(this.client);
+    this.agentRuns = new AgentRunsApi(this.client);
   }
 }
 
@@ -369,3 +373,15 @@ export type {
 } from './time.js';
 export { segmentConversation, DEFAULT_GAP_MINUTES, ROUND_MINUTES } from './segment.js';
 export type { ConversationMessage, WorklogSegment } from './segment.js';
+export { AgentRunsApi } from './agentRuns.js';
+export type {
+  AgentRunStatus,
+  RunnerEventKind,
+  RunnerEvent,
+  RunMessage,
+  ClaimedRun,
+  HeartbeatResult,
+  AppendEventsResult,
+  FinishInput,
+  FinishResult,
+} from './agentRuns.js';

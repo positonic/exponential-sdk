@@ -435,6 +435,30 @@ export interface TrpcClient {
     update: { mutate: (input: { commentId: string; body: string }) => Promise<unknown> };
     delete: { mutate: (input: { commentId: string }) => Promise<unknown> };
   };
+  /** Local-runner side of Agent runs (ADR-0067); agent-key principals only. */
+  agentRun: {
+    claim: { mutate: (input: { runnerId: string }) => Promise<unknown> };
+    heartbeat: { mutate: (input: { runId: string; runnerId?: string }) => Promise<unknown> };
+    appendEvents: {
+      mutate: (input: {
+        runId: string;
+        runnerId?: string;
+        events: Array<{ seq: number; kind: string; payload: Record<string, unknown> }>;
+      }) => Promise<unknown>;
+    };
+    finish: {
+      mutate: (input: {
+        runId: string;
+        runnerId?: string;
+        status: 'SUCCEEDED' | 'FAILED' | 'WAITING_ON_OWNER';
+        summary?: string;
+        readyToClose?: boolean;
+        error?: string;
+        usage?: Record<string, unknown>;
+        question?: string;
+      }) => Promise<unknown>;
+    };
+  };
   timeEntry: {
     /** Explicit-bounds entry; never touches the running Timer (ADR-0061). */
     create: { mutate: (input: TimeEntryCreateInput) => Promise<unknown> };
