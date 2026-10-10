@@ -545,6 +545,12 @@ export interface TrpcClient {
     create: { mutate: (input: { workspaceId: string; projectId?: string | null; title?: string; body?: string; includeInSearch?: boolean }) => Promise<unknown> };
     update: { mutate: (input: { id: string; title?: string; projectId?: string | null; includeInSearch?: boolean; body?: string }) => Promise<unknown> };
   };
+  resource: {
+    list: { query: (input: { workspaceId?: string; projectId?: string; contentType?: string; readStatus?: string; search?: string; tags?: string[]; includeArchived?: boolean; limit?: number; cursor?: string }) => Promise<unknown> };
+    create: { mutate: (input: { title: string; url?: string; description?: string; content?: string; contentType?: string; tags?: string[]; workspaceId?: string; projectId?: string; readStatus?: string; generateEmbeddings?: boolean }) => Promise<unknown> };
+    setReadStatus: { mutate: (input: { id: string; readStatus: string }) => Promise<unknown> };
+    archive: { mutate: (input: { id: string }) => Promise<unknown> };
+  };
   epic: {
     list: { query: (input: { workspaceId: string; status?: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED' }) => Promise<unknown[]> };
     getById: { query: (input: { id: string }) => Promise<unknown> };

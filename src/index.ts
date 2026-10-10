@@ -21,6 +21,7 @@ import { LabelsApi } from './labels.js';
 import { AreasApi } from './areas.js';
 import { MeetingsApi } from './meetings.js';
 import { PagesApi } from './pages.js';
+import { ResourcesApi } from './resources.js';
 import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
 import { SearchApi } from './search.js';
@@ -51,6 +52,7 @@ export class ExponentialClient {
   areas: AreasApi;
   meetings: MeetingsApi;
   pages: PagesApi;
+  resources: ResourcesApi;
   requirements: RequirementsApi;
   scopes: ScopesApi;
   search: SearchApi;
@@ -81,6 +83,7 @@ export class ExponentialClient {
     this.areas = new AreasApi(this.client);
     this.meetings = new MeetingsApi(this.client);
     this.pages = new PagesApi(this.client);
+    this.resources = new ResourcesApi(this.client);
     this.requirements = new RequirementsApi(this.client);
     this.scopes = new ScopesApi(this.client);
     this.search = new SearchApi(this.client);
@@ -293,6 +296,13 @@ export type {
   MeetingUpdateInput,
 } from './meetings.js';
 export type { KnowledgePage } from './types/page.js';
+export type { Resource, ResourceContentType, ReadStatus } from './types/resource.js';
+export type {
+  ResourceListOptions,
+  ResourceListResult,
+  ResourceCreateInput,
+  ResourceReadState,
+} from './resources.js';
 export type {
   PageListOptions,
   PageCreateInput,
