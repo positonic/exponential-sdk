@@ -1,5 +1,5 @@
 import type { TrpcClient } from './client.js';
-import type { MethodPayload } from './types/agentGuidance.js';
+import type { ContextPayload, MethodPayload } from './types/agentGuidance.js';
 
 export interface AgentGuidanceMethodInput {
   /**
@@ -7,6 +7,12 @@ export interface AgentGuidanceMethodInput {
    * a draft: a member of a preview workspace then gets the draft.
    */
   workspaceId?: string;
+}
+
+export interface AgentGuidanceContextInput {
+  workspaceId: string;
+  /** Adds the project's instructions. Must belong to `workspaceId`, else BAD_REQUEST. */
+  projectId?: string;
 }
 
 /**
@@ -25,5 +31,13 @@ export class AgentGuidanceApi {
    */
   async method(input?: AgentGuidanceMethodInput): Promise<MethodPayload> {
     return await this.client.agentGuidance.method.query(input) as MethodPayload;
+  }
+
+  /**
+   * The workspace's (and optional project's) AI instructions, marked as
+   * guidance. Requires membership of the workspace (FORBIDDEN otherwise).
+   */
+  async context(input: AgentGuidanceContextInput): Promise<ContextPayload> {
+    return await this.client.agentGuidance.context.query(input) as ContextPayload;
   }
 }

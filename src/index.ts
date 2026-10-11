@@ -400,8 +400,11 @@ export type {
   FinishResult,
 } from './agentRuns.js';
 export { AgentGuidanceApi } from './agentGuidance.js';
-export type { AgentGuidanceMethodInput } from './agentGuidance.js';
+export type { AgentGuidanceContextInput, AgentGuidanceMethodInput } from './agentGuidance.js';
 export type {
+  ContextInstruction,
+  ContextPayload,
+  InstructionScope,
   MethodDocument,
   MethodDocumentId,
   MethodPayload,

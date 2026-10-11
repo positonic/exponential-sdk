@@ -11,14 +11,24 @@ function makeClient() {
     canonicalSource: { repo: 'positonic/exponential', path: 'content/docs/method', url: null },
     documents: [],
   });
+  const context = vi.fn().mockResolvedValue({
+    workspace: { id: 'w1', slug: 'exponential', name: 'Exponential' },
+    project: null,
+    authority: 'guidance',
+    instructions: [],
+    assembled: null,
+    revision: 'sha256:def',
+    generatedAt: '2026-10-11T00:00:00.000Z',
+  });
 
   const client = {
     agentGuidance: {
       method: { query: method },
+      context: { query: context },
     },
   } as unknown as TrpcClient;
 
-  return { api: new AgentGuidanceApi(client), method };
+  return { api: new AgentGuidanceApi(client), method, context };
 }
 
 describe('AgentGuidanceApi.method', () => {
@@ -34,5 +44,21 @@ describe('AgentGuidanceApi.method', () => {
     const { api, method } = makeClient();
     await api.method();
     expect(method).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe('AgentGuidanceApi.context', () => {
+  it('queries agentGuidance.context with workspace and project', async () => {
+    const { api, context } = makeClient();
+    const result = await api.context({ workspaceId: 'w1', projectId: 'p1' });
+    expect(context).toHaveBeenCalledWith({ workspaceId: 'w1', projectId: 'p1' });
+    expect(result.authority).toBe('guidance');
+    expect(result.revision).toBe('sha256:def');
+  });
+
+  it('sends only the workspace when no project is given', async () => {
+    const { api, context } = makeClient();
+    await api.context({ workspaceId: 'w1' });
+    expect(context).toHaveBeenCalledWith({ workspaceId: 'w1' });
   });
 });

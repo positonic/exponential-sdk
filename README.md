@@ -187,6 +187,26 @@ const { draftCount, discardedWithoutEvidence } =
 
 ---
 
+### Agent guidance
+
+The Exponential Method and the scoped AI instructions, served the same way to
+every agent surface (ADR-0071). Both work with agent keys.
+
+```typescript
+// The current method: version, status, content hash and its three documents
+const method = await client.agentGuidance.method({ workspaceId: "ws-123" });
+// While the method is a draft, only preview-workspace members get it;
+// everyone else gets NOT_FOUND "No published method yet".
+
+// The workspace's (and optional project's) AI instructions
+const ctx = await client.agentGuidance.context({ workspaceId: "ws-123", projectId: "proj-123" });
+ctx.authority; // always "guidance": instructions never authorise anything
+ctx.assembled; // exactly the block in-app chat injects, or null
+ctx.revision;  // "sha256:<hex>": compare to know if a loaded copy is current
+```
+
+---
+
 ### Configuration
 
 Credentials are stored persistently using the OS keychain via [`conf`](https://github.com/sindresorhus/conf).

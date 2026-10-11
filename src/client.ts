@@ -482,6 +482,9 @@ export interface TrpcClient {
     method: {
       query: (input?: { workspaceId?: string }) => Promise<unknown>;
     };
+    context: {
+      query: (input: { workspaceId: string; projectId?: string }) => Promise<unknown>;
+    };
   };
   decision: {
     list: {
