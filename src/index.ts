@@ -27,6 +27,7 @@ import { ScopesApi } from './scopes.js';
 import { SearchApi } from './search.js';
 import { TimeApi } from './time.js';
 import { AgentRunsApi } from './agentRuns.js';
+import { AgentGuidanceApi } from './agentGuidance.js';
 
 export class ExponentialClient {
   private client: TrpcClient;
@@ -61,6 +62,8 @@ export class ExponentialClient {
   time: TimeApi;
   /** Agent runs — the local runner's claim/heartbeat/append/finish (ADR-0067); agent-key only. */
   agentRuns: AgentRunsApi;
+  /** The Exponential Method and scoped AI instructions for agents (ADR-0071). */
+  agentGuidance: AgentGuidanceApi;
 
   constructor(private config: { token: string; apiUrl: string }) {
     this.client = createClient(this.config);
@@ -92,6 +95,7 @@ export class ExponentialClient {
     this.search = new SearchApi(this.client);
     this.time = new TimeApi(this.client);
     this.agentRuns = new AgentRunsApi(this.client);
+    this.agentGuidance = new AgentGuidanceApi(this.client);
   }
 }
 
@@ -395,3 +399,13 @@ export type {
   FinishInput,
   FinishResult,
 } from './agentRuns.js';
+export { AgentGuidanceApi } from './agentGuidance.js';
+export type { AgentGuidanceContextInput, AgentGuidanceMethodInput } from './agentGuidance.js';
+export type {
+  AgentGuidanceContextInstruction,
+  AgentGuidanceContext,
+  AgentGuidanceInstructionScope,
+  AgentGuidanceMethodDocument,
+  AgentGuidanceMethodDocumentId,
+  AgentGuidanceMethod,
+} from './types/agentGuidance.js';

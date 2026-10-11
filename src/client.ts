@@ -477,6 +477,15 @@ export interface TrpcClient {
       query: (input: { date: Date; workspaceId?: string | null }) => Promise<unknown>;
     };
   };
+  /** Agent guidance (ADR-0071): not human-only, so agent keys reach it. */
+  agentGuidance: {
+    method: {
+      query: (input?: { workspaceId?: string }) => Promise<unknown>;
+    };
+    context: {
+      query: (input: { workspaceId: string; projectId?: string }) => Promise<unknown>;
+    };
+  };
   decision: {
     list: {
       query: (input: {
