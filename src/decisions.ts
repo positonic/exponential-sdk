@@ -215,11 +215,25 @@ export class DecisionsApi {
     }) as { deleted: boolean };
   }
 
-  /** Publish a draft into the log. */
-  async confirmDraft(workspaceId: string, decisionId: string): Promise<Decision> {
+  /**
+   * Publish a draft into the log. Needs a person's login: agent keys are
+   * refused. Idempotent on a decision that is already confirmed.
+   *
+   * `status` moves it in the same write — `{ status: 'ACCEPTED' }` is
+   * "confirm as accepted", and works on an already-confirmed decision too.
+   * `SUPERSEDED` is refused (it needs a successor; use {@link setStatus}).
+   * A person confirming or accepting a decision that no person stands behind
+   * becomes its decider. `decisionId` may also be a `D-0006` label.
+   */
+  async confirmDraft(
+    workspaceId: string,
+    decisionId: string,
+    options: { status?: DecisionStatus } = {},
+  ): Promise<Decision> {
     return await this.client.decision.confirmDraft.mutate({
       workspaceId,
       decisionId,
+      ...(options.status ? { status: options.status } : {}),
     }) as Decision;
   }
 

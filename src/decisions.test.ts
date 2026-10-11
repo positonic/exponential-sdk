@@ -197,4 +197,14 @@ describe('DecisionsApi draft lifecycle', () => {
       expect(fn).toHaveBeenCalledWith({ workspaceId: 'w1', decisionId: 'd1' });
     }
   });
+
+  it('confirms as accepted in one call', async () => {
+    const { api, confirmDraft } = makeClient();
+    await api.confirmDraft('w1', 'D-0006', { status: 'ACCEPTED' });
+    expect(confirmDraft).toHaveBeenCalledWith({
+      workspaceId: 'w1',
+      decisionId: 'D-0006',
+      status: 'ACCEPTED',
+    });
+  });
 });
