@@ -1,5 +1,5 @@
 import type { TrpcClient } from './client.js';
-import type { ContextPayload, MethodPayload } from './types/agentGuidance.js';
+import type { AgentGuidanceContext, AgentGuidanceMethod } from './types/agentGuidance.js';
 
 export interface AgentGuidanceMethodInput {
   /**
@@ -29,15 +29,15 @@ export class AgentGuidanceApi {
    * The current method version. Throws NOT_FOUND "No published method yet"
    * when there is none the caller may see.
    */
-  async method(input?: AgentGuidanceMethodInput): Promise<MethodPayload> {
-    return await this.client.agentGuidance.method.query(input) as MethodPayload;
+  async method(input?: AgentGuidanceMethodInput): Promise<AgentGuidanceMethod> {
+    return await this.client.agentGuidance.method.query(input) as AgentGuidanceMethod;
   }
 
   /**
    * The workspace's (and optional project's) AI instructions, marked as
    * guidance. Requires membership of the workspace (FORBIDDEN otherwise).
    */
-  async context(input: AgentGuidanceContextInput): Promise<ContextPayload> {
-    return await this.client.agentGuidance.context.query(input) as ContextPayload;
+  async context(input: AgentGuidanceContextInput): Promise<AgentGuidanceContext> {
+    return await this.client.agentGuidance.context.query(input) as AgentGuidanceContext;
   }
 }

@@ -402,10 +402,10 @@ export type {
 export { AgentGuidanceApi } from './agentGuidance.js';
 export type { AgentGuidanceContextInput, AgentGuidanceMethodInput } from './agentGuidance.js';
 export type {
-  ContextInstruction,
-  ContextPayload,
-  InstructionScope,
-  MethodDocument,
-  MethodDocumentId,
-  MethodPayload,
+  AgentGuidanceContextInstruction,
+  AgentGuidanceContext,
+  AgentGuidanceInstructionScope,
+  AgentGuidanceMethodDocument,
+  AgentGuidanceMethodDocumentId,
+  AgentGuidanceMethod,
 } from './types/agentGuidance.js';
