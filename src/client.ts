@@ -315,6 +315,14 @@ export interface TrpcClient {
     global: {
       query: (input: { query: string; workspaceId?: string; limit?: number }) => Promise<unknown>;
     };
+    knowledge: {
+      query: (input: {
+        query: string;
+        workspaceId: string;
+        limit?: number;
+        sourceTypes?: ('transcription' | 'resource' | 'document' | 'page')[];
+      }) => Promise<unknown>;
+    };
   };
   action: {
     getAll: { query: (input?: ActionInput) => Promise<unknown[]> };
@@ -565,9 +573,14 @@ export interface TrpcClient {
   };
   page: {
     list: { query: (input: { workspaceId: string; projectId?: string; search?: string }) => Promise<unknown[]> };
-    get: { query: (input: { id: string }) => Promise<unknown> };
-    create: { mutate: (input: { workspaceId: string; projectId?: string | null; title?: string; body?: string; includeInSearch?: boolean }) => Promise<unknown> };
-    update: { mutate: (input: { id: string; title?: string; projectId?: string | null; includeInSearch?: boolean; body?: string }) => Promise<unknown> };
+    get: { query: (input: { id: string; format?: 'full' | 'markdown' | 'outline'; section?: string }) => Promise<unknown> };
+    search: { query: (input: { workspaceId: string; query: string; projectId?: string; limit?: number }) => Promise<unknown> };
+    create: { mutate: (input: { workspaceId: string; projectId?: string | null; title?: string; body?: string; includeInSearch?: boolean; note?: string; source?: string | null; asOf?: Date | null }) => Promise<unknown> };
+    update: { mutate: (input: { id: string; title?: string; projectId?: string | null; includeInSearch?: boolean; body?: string; baseVersion?: number; note?: string; source?: string | null; asOf?: Date | null }) => Promise<unknown> };
+    history: { query: (input: { id: string; limit?: number; cursor?: string }) => Promise<unknown> };
+    revision: { query: (input: { id: string; revisionId: string }) => Promise<unknown> };
+    diff: { query: (input: { id: string; revisionId: string; against?: string }) => Promise<unknown> };
+    restore: { mutate: (input: { id: string; revisionId: string; note?: string }) => Promise<unknown> };
   };
   resource: {
     list: { query: (input: { workspaceId?: string; projectId?: string; contentType?: string; readStatus?: string; search?: string; tags?: string[]; includeArchived?: boolean; limit?: number; cursor?: string }) => Promise<unknown> };
