@@ -77,8 +77,10 @@ export interface PageRevision {
   asOf: Date | null;
   /**
    * The author, or null. Null with `authorHidden: true` means names are
-   * withheld from you (you can view the page but are not a workspace member);
-   * null with `authorHidden: false` is a baseline row, which has no author.
+   * withheld from you (you can view the page but are not a workspace member).
+   * Null with `authorHidden: false` means no person wrote it: a `baseline`
+   * row, or an automated write (an agenda seed, a generated Workspace update)
+   * whose `note` says what did.
    */
   author: PageRevisionAuthor | null;
   authorHidden: boolean;

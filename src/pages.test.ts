@@ -70,8 +70,8 @@ describe('PagesApi history', () => {
 
   it('restore passes the note through', async () => {
     const { client, restore } = makeClient();
-    const result = await new PagesApi(client).restore('p1', 'r1', { note: 'back' });
-    expect(restore).toHaveBeenCalledWith({ id: 'p1', revisionId: 'r1', note: 'back' });
+    const result = await new PagesApi(client).restore('p1', 'r1', { note: 'back', baseVersion: 5 });
+    expect(restore).toHaveBeenCalledWith({ id: 'p1', revisionId: 'r1', note: 'back', baseVersion: 5 });
     expect(result.docVersion).toBe(2);
   });
 

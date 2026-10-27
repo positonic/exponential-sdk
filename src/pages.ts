@@ -11,7 +11,7 @@ import type {
 export interface PageListOptions {
   workspaceId: string;
   projectId?: string;
-  /** Case-insensitive substring over title and body. For search by meaning use `search`. */
+  /** Case-insensitive title match. To find pages by content or meaning use `search`. */
   search?: string;
 }
 
@@ -103,6 +103,12 @@ export interface PageUpdateInput {
 export interface PageRestoreOptions {
   /** Why you are restoring; defaults to "Restored the version from <date>". */
   note?: string;
+  /**
+   * The page's `docVersion` when you decided to restore (the newest
+   * revision's `docVersion` from `history`). With it, a page saved since then
+   * fails with CONFLICT instead of being replaced. Always send it.
+   */
+  baseVersion?: number;
 }
 
 /**

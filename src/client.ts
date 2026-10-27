@@ -580,7 +580,7 @@ export interface TrpcClient {
     history: { query: (input: { id: string; limit?: number; cursor?: string }) => Promise<unknown> };
     revision: { query: (input: { id: string; revisionId: string }) => Promise<unknown> };
     diff: { query: (input: { id: string; revisionId: string; against?: string }) => Promise<unknown> };
-    restore: { mutate: (input: { id: string; revisionId: string; note?: string }) => Promise<unknown> };
+    restore: { mutate: (input: { id: string; revisionId: string; note?: string; baseVersion?: number }) => Promise<unknown> };
   };
   resource: {
     list: { query: (input: { workspaceId?: string; projectId?: string; contentType?: string; readStatus?: string; search?: string; tags?: string[]; includeArchived?: boolean; limit?: number; cursor?: string }) => Promise<unknown> };
