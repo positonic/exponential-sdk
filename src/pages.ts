@@ -88,7 +88,11 @@ export interface PageUpdateInput {
    * CONFLICT instead of overwriting their work. Always send it when you can.
    */
   baseVersion?: number;
-  /** Why this change — recorded on the revision; shown in the page's history. */
+  /**
+   * Why this change — recorded on the revision and shown in the page's
+   * history. Always send one from an agent: a body write without a note
+   * reads "No reason given" to everyone who looks at the history.
+   */
   note?: string;
   /** Provenance: where the facts come from. Empty string / null clears it. */
   source?: string | null;

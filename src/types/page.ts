@@ -52,7 +52,8 @@ export interface PageOutlineEntry {
   line: number;
 }
 
-export type PageRevisionKind = 'create' | 'editor' | 'markdown' | 'restore';
+/** `baseline` is the unattributed starting row seeded for pages that predate history. */
+export type PageRevisionKind = 'baseline' | 'create' | 'editor' | 'markdown' | 'restore';
 
 export interface PageRevisionAuthor {
   id: string;
@@ -71,7 +72,16 @@ export interface PageRevision {
   note: string | null;
   /** UTF-8 size of the Markdown body at this revision. */
   bodyBytes: number;
+  /** Provenance as it stood at this revision. */
+  source: string | null;
+  asOf: Date | null;
+  /**
+   * The author, or null. Null with `authorHidden: true` means names are
+   * withheld from you (you can view the page but are not a workspace member);
+   * null with `authorHidden: false` is a baseline row, which has no author.
+   */
   author: PageRevisionAuthor | null;
+  authorHidden: boolean;
   /** When the revision was first recorded. */
   createdAt: Date;
   /** When it last moved forward (editor saves fold into an open revision). */
@@ -95,6 +105,8 @@ export interface PageDiffSide {
   revisionId: string | null;
   docVersion: number;
   title: string;
+  source: string | null;
+  asOf: Date | null;
   createdAt: Date | null;
 }
 
@@ -105,6 +117,8 @@ export interface PageDiff {
   unified: string;
   stats: { added: number; removed: number };
   titleChanged: boolean;
+  /** `source` or `asOf` differ between the two sides. */
+  provenanceChanged: boolean;
 }
 
 export interface PageSearchResult {
