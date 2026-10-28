@@ -1,6 +1,7 @@
 import type { TrpcClient } from './client.js';
 import type {
   Ceremony,
+  CeremonyAddedOccurrence,
   CeremonyAgendaResult,
   CeremonyAgendaTemplateSection,
   CeremonyBackfillResult,
@@ -9,15 +10,18 @@ import type {
   CeremonyKind,
   CeremonyMatrixPostResult,
   CeremonyMeetingAttachment,
+  CeremonyMeetingUrlMatch,
   CeremonyMyUpdate,
   CeremonyOccurrence,
   CeremonyOccurrenceListRow,
+  CeremonyRescheduledOccurrence,
   CeremonySkipResult,
   CeremonySummary,
   CeremonyTemplate,
   CeremonyUpdateSummary,
   CeremonyWriteResult,
   ProjectCeremony,
+  ProjectOccurrenceRow,
 } from './types/ceremony.js';
 
 /** Definition fields shared by create and update. */
@@ -58,6 +62,10 @@ interface CeremonyFields {
   /** Append the linked-projects section to every agenda (default true). */
   includeProjects?: boolean;
   matrixRoomId?: string | null;
+  /** Video room link; recordings from it file themselves here. Empty string clears it. */
+  meetingUrl?: string | null;
+  /** Run "Extract outputs" on every attached recording (default false). */
+  autoExtractOutputs?: boolean;
 }
 
 export interface CeremonyCreateInput extends CeremonyFields {
@@ -157,6 +165,33 @@ export class CeremoniesApi {
     return await this.client.ceremony.listForProject.query({ projectId }) as ProjectCeremony[];
   }
 
+  /**
+   * A project's Meetings timeline: occurrences of the ceremonies reviewing it
+   * (one-offs included), two weeks back to one week ahead by default, newest
+   * first, at most `perCeremony` (default 5) per recurring ceremony.
+   */
+  async listOccurrencesForProject(input: {
+    projectId: string;
+    from?: Date;
+    to?: Date;
+    perCeremony?: number;
+  }): Promise<ProjectOccurrenceRow[]> {
+    return await this.client.ceremony.listOccurrencesForProject.query(input) as ProjectOccurrenceRow[];
+  }
+
+  /**
+   * The ceremony that meets in a video room, with the occurrence on at `at`
+   * (default now). Searches all your workspaces unless `workspaceId` narrows
+   * it; null when nothing (or nothing unambiguous) matches.
+   */
+  async matchMeetingUrl(input: {
+    url: string;
+    at?: Date;
+    workspaceId?: string;
+  }): Promise<CeremonyMeetingUrlMatch | null> {
+    return await this.client.ceremony.matchMeetingUrl.query(input) as CeremonyMeetingUrlMatch | null;
+  }
+
   /** One ceremony with participants, projects and its recent + upcoming occurrences. */
   async get(workspaceId: string, id: string): Promise<Ceremony> {
     return await this.client.ceremony.get.query({ workspaceId, id }) as Ceremony;
@@ -225,7 +260,10 @@ export class CeremoniesApi {
     }) as CeremonyGenerateAgendaResult;
   }
 
-  /** Skip an occurrence with a reason (1-500 characters). Participants are told. */
+  /**
+   * Skip an occurrence with a reason (1-500 characters). Participants are
+   * told. Skipping a booked one-off cancels its calendar invites.
+   */
   async skipOccurrence(
     workspaceId: string,
     occurrenceId: string,
@@ -246,6 +284,35 @@ export class CeremoniesApi {
       workspaceId,
       occurrenceId,
     }) as CeremonySkipResult;
+  }
+
+  /** Add one occurrence at any time — a meeting off the cadence (owner only). */
+  async addOccurrence(
+    workspaceId: string,
+    ceremonyId: string,
+    scheduledStart: Date,
+  ): Promise<CeremonyAddedOccurrence> {
+    return await this.client.ceremony.addOccurrence.mutate({
+      workspaceId,
+      ceremonyId,
+      scheduledStart,
+    }) as CeremonyAddedOccurrence;
+  }
+
+  /**
+   * Move an occurrence that hasn't happened to another time (owner only). It
+   * keeps its agenda, notes, updates and recordings.
+   */
+  async rescheduleOccurrence(
+    workspaceId: string,
+    occurrenceId: string,
+    scheduledStart: Date,
+  ): Promise<CeremonyRescheduledOccurrence> {
+    return await this.client.ceremony.rescheduleOccurrence.mutate({
+      workspaceId,
+      occurrenceId,
+      scheduledStart,
+    }) as CeremonyRescheduledOccurrence;
   }
 
   /** Mark an agenda item resolved, or reopen it. Survives regeneration. */

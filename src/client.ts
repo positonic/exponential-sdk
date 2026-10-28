@@ -561,6 +561,12 @@ export interface TrpcClient {
       query: (input: { workspaceId: string; includeInactive?: boolean }) => Promise<unknown[]>;
     };
     listForProject: { query: (input: { projectId: string }) => Promise<unknown[]> };
+    listOccurrencesForProject: {
+      query: (input: { projectId: string; from?: Date; to?: Date; perCeremony?: number }) => Promise<unknown[]>;
+    };
+    matchMeetingUrl: {
+      query: (input: { url: string; at?: Date; workspaceId?: string }) => Promise<unknown>;
+    };
     get: { query: (input: { workspaceId: string; id: string }) => Promise<unknown> };
     listOccurrences: { query: (input: CeremonyListOccurrencesInput) => Promise<unknown[]> };
     getOccurrence: {
@@ -584,6 +590,12 @@ export interface TrpcClient {
     };
     unskipOccurrence: {
       mutate: (input: { workspaceId: string; occurrenceId: string }) => Promise<unknown>;
+    };
+    addOccurrence: {
+      mutate: (input: { workspaceId: string; ceremonyId: string; scheduledStart: Date }) => Promise<unknown>;
+    };
+    rescheduleOccurrence: {
+      mutate: (input: { workspaceId: string; occurrenceId: string; scheduledStart: Date }) => Promise<unknown>;
     };
     resolveAgendaItem: {
       mutate: (input: {

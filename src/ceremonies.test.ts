@@ -27,6 +27,10 @@ function makeClient() {
     backfillAttachments: vi.fn().mockResolvedValue({ dryRun: true, rows: [] }),
     attachMeeting: vi.fn().mockResolvedValue({ meetingId: 'm1', occurrenceId: 'o1' }),
     detachMeeting: vi.fn().mockResolvedValue({ meetingId: 'm1', occurrenceId: null }),
+    listOccurrencesForProject: vi.fn().mockResolvedValue([]),
+    matchMeetingUrl: vi.fn().mockResolvedValue(null),
+    addOccurrence: vi.fn().mockResolvedValue({ id: 'o2' }),
+    rescheduleOccurrence: vi.fn().mockResolvedValue({ id: 'o1', movedFrom: null }),
   };
 
   const q = (fn: unknown) => ({ query: fn });
@@ -56,6 +60,10 @@ function makeClient() {
       backfillAttachments: m(calls.backfillAttachments),
       attachMeeting: m(calls.attachMeeting),
       detachMeeting: m(calls.detachMeeting),
+      listOccurrencesForProject: q(calls.listOccurrencesForProject),
+      matchMeetingUrl: q(calls.matchMeetingUrl),
+      addOccurrence: m(calls.addOccurrence),
+      rescheduleOccurrence: m(calls.rescheduleOccurrence),
     },
   } as unknown as TrpcClient;
 
@@ -158,5 +166,24 @@ describe('CeremoniesApi writes', () => {
     expect(attachMeeting).toHaveBeenCalledWith({ meetingId: 'm1', occurrenceId: 'o1' });
     await api.detachMeeting('m1');
     expect(detachMeeting).toHaveBeenCalledWith({ meetingId: 'm1' });
+  });
+});
+
+describe('CeremoniesApi scheduling (ADR-0059 amendment)', () => {
+  it('addOccurrence and rescheduleOccurrence send the new start', async () => {
+    const { api, addOccurrence, rescheduleOccurrence } = makeClient();
+    const at = new Date('2026-11-04T10:00:00Z');
+    await api.addOccurrence('w1', 'c1', at);
+    expect(addOccurrence).toHaveBeenCalledWith({ workspaceId: 'w1', ceremonyId: 'c1', scheduledStart: at });
+    await api.rescheduleOccurrence('w1', 'o1', at);
+    expect(rescheduleOccurrence).toHaveBeenCalledWith({ workspaceId: 'w1', occurrenceId: 'o1', scheduledStart: at });
+  });
+
+  it('listOccurrencesForProject and matchMeetingUrl pass input through', async () => {
+    const { api, listOccurrencesForProject, matchMeetingUrl } = makeClient();
+    await api.listOccurrencesForProject({ projectId: 'p1', perCeremony: 3 });
+    expect(listOccurrencesForProject).toHaveBeenCalledWith({ projectId: 'p1', perCeremony: 3 });
+    await api.matchMeetingUrl({ url: 'https://talk.example/rooms/standup' });
+    expect(matchMeetingUrl).toHaveBeenCalledWith({ url: 'https://talk.example/rooms/standup' });
   });
 });

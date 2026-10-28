@@ -291,6 +291,7 @@ export type {
 export { CeremoniesApi } from './ceremonies.js';
 export type {
   Ceremony,
+  CeremonyAddedOccurrence,
   CeremonyAgenda,
   CeremonyAgendaItem,
   CeremonyAgendaMatrixPost,
@@ -305,6 +306,7 @@ export type {
   CeremonyKind,
   CeremonyMatrixPostResult,
   CeremonyMeetingAttachment,
+  CeremonyMeetingUrlMatch,
   CeremonyMyUpdate,
   CeremonyNamedRef,
   CeremonyOccurrence,
@@ -314,6 +316,7 @@ export type {
   CeremonyParticipantUpdate,
   CeremonyRecord,
   CeremonyRecordedMeeting,
+  CeremonyRescheduledOccurrence,
   CeremonySkipProposal,
   CeremonySkipResult,
   CeremonySummary,
@@ -323,6 +326,7 @@ export type {
   CeremonyUserRef,
   CeremonyWriteResult,
   ProjectCeremony,
+  ProjectOccurrenceRow,
 } from './types/ceremony.js';
 export type {
   CeremonyAddAgendaItemInput,

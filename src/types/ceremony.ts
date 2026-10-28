@@ -64,8 +64,8 @@ export interface CeremonySummary {
   kind: CeremonyKind;
   /** Icon key; null shows the kind's default. */
   icon: string | null;
-  /** RRULE body, e.g. `FREQ=WEEKLY;BYDAY=MO;BYHOUR=10;BYMINUTE=0`. */
-  cadenceRule: string;
+  /** RRULE body, e.g. `FREQ=WEEKLY;BYDAY=MO;BYHOUR=10;BYMINUTE=0`. Null only on a one-off. */
+  cadenceRule: string | null;
   /** IANA zone the cadence is evaluated in. */
   timezone: string;
   startsOn: Date;
@@ -77,9 +77,16 @@ export interface CeremonySummary {
   productId: string | null;
   teamId: string | null;
   includeProjects: boolean;
+  /** Run "Extract outputs" on every recording that attaches to an occurrence. */
+  autoExtractOutputs: boolean;
   projects: Array<{ projectId: string }>;
   owner: CeremonyUserRef;
   _count: { occurrences: number; participants: number };
+  /**
+   * Only on `ceremonies.list`: whether the caller may add, move or skip
+   * occurrences (the owner, or a workspace owner/admin).
+   */
+  canManage?: boolean;
 }
 
 /** A `ceremonies.listForProject` row: the summary plus the next planned occurrence. */
@@ -110,6 +117,8 @@ export interface CeremonyOccurrenceRow {
   id: string;
   scheduledStart: Date;
   scheduledEnd: Date;
+  /** The cadence tick this occurrence accounts for; differs from `scheduledStart` once moved, null when added off-cadence. */
+  cadenceStart: Date | null;
   status: CeremonyOccurrenceStatus;
   skipReason: string | null;
   agendaGeneratedAt: Date | null;
@@ -138,7 +147,8 @@ export interface Ceremony {
   inputs: string | null;
   /** Markdown — expected outputs. */
   outputs: string | null;
-  cadenceRule: string;
+  /** Null only on a one-off. */
+  cadenceRule: string | null;
   timezone: string;
   startsOn: Date;
   durationMinutes: number;
@@ -146,8 +156,13 @@ export interface Ceremony {
   ownerId: string;
   agendaTemplate: CeremonyAgendaTemplateSection[];
   includeProjects: boolean;
+  autoExtractOutputs: boolean;
   matrixRoomId: string | null;
+  /** The video room the ceremony meets in; recordings from it file themselves here. */
+  meetingUrl: string | null;
   isActive: boolean;
+  /** A single meeting booked from a project, not part of the operating rhythm. */
+  isOneOff: boolean;
   createdById: string;
   createdAt: Date;
   updatedAt: Date;
@@ -166,12 +181,16 @@ export interface Ceremony {
    * — newest first overall.
    */
   occurrences: CeremonyOccurrenceRow[];
+  /** Whether the caller may edit the definition. */
+  canEdit: boolean;
+  /** Whether the caller may add, move or skip occurrences. */
+  canManage: boolean;
 }
 
 /** The bare ceremony row returned by `create` / `update`. */
 export type CeremonyRecord = Omit<
   Ceremony,
-  'owner' | 'product' | 'team' | 'projects' | 'participants' | 'occurrences'
+  'owner' | 'product' | 'team' | 'projects' | 'participants' | 'occurrences' | 'canEdit' | 'canManage'
 >;
 
 export interface CeremonyWriteResult {
@@ -186,6 +205,7 @@ export interface CeremonyOccurrenceListRow {
   ceremonyId: string;
   scheduledStart: Date;
   scheduledEnd: Date;
+  cadenceStart: Date | null;
   status: CeremonyOccurrenceStatus;
   ceremony: { id: string; name: string; kind: CeremonyKind };
 }
@@ -274,8 +294,20 @@ export interface CeremonyOccurrence {
   workspaceId: string;
   scheduledStart: Date;
   scheduledEnd: Date;
+  cadenceStart: Date | null;
   status: CeremonyOccurrenceStatus;
   skipReason: string | null;
+  /** True when this is a one-off meeting booked from a project. */
+  isOneOff: boolean;
+  /** The ceremony's purpose (for a one-off, what this meeting is about). */
+  purpose: string | null;
+  /** The calendar booking, when one exists. Attendee names only, no addresses. */
+  scheduledMeeting: {
+    id: string;
+    status: string;
+    organizerId: string | null;
+    attendees: Array<{ userId: string | null; name: string | null }>;
+  } | null;
   /** The ceremony definition as it was when this occurrence was created. */
   definitionSnapshot: unknown;
   /** Null until an agenda has been generated. */
@@ -298,6 +330,8 @@ export interface CeremonyOccurrence {
     ownerId: string;
     matrixRoomId: string | null;
     agendaTemplate: CeremonyAgendaTemplateSection[];
+    isOneOff: boolean;
+    purpose: string | null;
     owner: CeremonyUserRef;
   };
   recordedMeetings: CeremonyRecordedMeeting[];
@@ -415,4 +449,45 @@ export interface CeremonyBackfillResult {
 export interface CeremonyMeetingAttachment {
   meetingId: string;
   occurrenceId: string | null;
+}
+
+/** One row of a project's Meetings timeline (`listOccurrencesForProject`), newest first. */
+export interface ProjectOccurrenceRow {
+  occurrenceId: string;
+  ceremonyId: string;
+  ceremonyName: string;
+  isOneOff: boolean;
+  /** A one-off's purpose; null for recurring ceremonies. */
+  purpose: string | null;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  status: CeremonyOccurrenceStatus;
+  attendeeCount: number;
+  /** App-relative occurrence page; null for project-only guests who can't open it. */
+  href: string | null;
+}
+
+/** The ceremony that meets in a video room, and the occurrence on at the time asked. */
+export interface CeremonyMeetingUrlMatch {
+  workspace: { id: string; name: string };
+  ceremony: { id: string; name: string };
+  /** Set when the ceremony reviews exactly one project. */
+  project: { id: string; name: string } | null;
+  occurrence: { id: string; scheduledStart: Date; scheduledEnd: Date } | null;
+}
+
+export interface CeremonyAddedOccurrence {
+  id: string;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  cadenceStart: Date | null;
+  status: CeremonyOccurrenceStatus;
+}
+
+export interface CeremonyRescheduledOccurrence {
+  id: string;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  /** The old start; null when the new time equals the old one (no-op). */
+  movedFrom: Date | null;
 }
