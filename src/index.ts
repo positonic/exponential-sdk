@@ -299,7 +299,20 @@ export type {
   MeetingCreateInput,
   MeetingUpdateInput,
 } from './meetings.js';
-export type { KnowledgePage } from './types/page.js';
+export type {
+  KnowledgePage,
+  PageGetFormat,
+  PageOutlineEntry,
+  PageRevision,
+  PageRevisionKind,
+  PageRevisionAuthor,
+  PageRevisionDetail,
+  PageHistory,
+  PageDiff,
+  PageDiffSide,
+  PageSearchResult,
+  PageSearchOutput,
+} from './types/page.js';
 export type { Resource, ResourceContentType, ReadStatus } from './types/resource.js';
 export type {
   ResourceListOptions,
@@ -309,6 +322,11 @@ export type {
 } from './resources.js';
 export type {
   PageListOptions,
+  PageGetOptions,
+  PageSearchOptions,
+  PageHistoryOptions,
+  PageDiffOptions,
+  PageRestoreOptions,
   PageCreateInput,
   PageUpdateInput,
 } from './pages.js';
@@ -356,6 +374,10 @@ export type {
   SearchResultWorkspace,
   GlobalSearchOptions,
   GlobalSearchOutput,
+  KnowledgeSourceType,
+  KnowledgeSearchOptions,
+  KnowledgeSearchResult,
+  KnowledgeSearchOutput,
 } from './types/search.js';
 export type { Tag, TagEntityType, TagListResult } from './types/tag.js';
 export type {
