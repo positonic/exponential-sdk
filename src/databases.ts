@@ -201,7 +201,7 @@ export class DatabasesApi {
    * checked, each cell that does not fit named. Writes nothing.
    */
   async previewCsv(databaseId: string, csv: string, mapping?: CsvMapping): Promise<CsvPreview> {
-    return await this.client.database.previewCsv.query({ id: databaseId, csv, ...(mapping ? { mapping } : {}) }) as CsvPreview;
+    return await this.client.database.previewCsv.mutate({ id: databaseId, csv, ...(mapping ? { mapping } : {}) }) as CsvPreview;
   }
 
   /**

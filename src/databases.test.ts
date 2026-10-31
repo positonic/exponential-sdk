@@ -31,7 +31,7 @@ function makeClient() {
       reorderProperties: { mutate: reorderProperties },
       listRows: { query: listRows },
       createRow: { mutate: createRow },
-      previewCsv: { query: previewCsv },
+      previewCsv: { mutate: previewCsv },
       commitCsv: { mutate: commitCsv },
       updateRow: { mutate: updateRow },
       deleteRow: { mutate: deleteRow },
