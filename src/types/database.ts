@@ -224,6 +224,12 @@ export interface CsvPreview {
   total: number;
   /** Rows with no cell error — what a commit creates. */
   importable: number;
+  /**
+   * Select / multi-select option names the file uses that the property
+   * lacks, by column definition id (`new:<name>` for a new column). The
+   * commit creates them; cells naming them hold the name until then.
+   */
+  newOptions: Record<string, string[]>;
 }
 
 export interface CsvCommitResult {
