@@ -14,6 +14,8 @@ function makeClient() {
   const reorderProperties = vi.fn().mockResolvedValue({ id: 'db1' });
   const listRows = vi.fn().mockResolvedValue({ rows: [], nextCursor: null, columns: [] });
   const createRow = vi.fn().mockResolvedValue({ id: 'r1', values: {} });
+  const previewCsv = vi.fn().mockResolvedValue({ rows: [], importable: 0 });
+  const commitCsv = vi.fn().mockResolvedValue({ created: [], skipped: [] });
   const updateRow = vi.fn().mockResolvedValue({ id: 'r1', values: {} });
   const deleteRow = vi.fn().mockResolvedValue({ id: 'r1', databaseId: 'db1' });
   const client = {
@@ -29,6 +31,8 @@ function makeClient() {
       reorderProperties: { mutate: reorderProperties },
       listRows: { query: listRows },
       createRow: { mutate: createRow },
+      previewCsv: { query: previewCsv },
+      commitCsv: { mutate: commitCsv },
       updateRow: { mutate: updateRow },
       deleteRow: { mutate: deleteRow },
     },
@@ -46,6 +50,8 @@ function makeClient() {
     reorderProperties,
     listRows,
     createRow,
+    previewCsv,
+    commitCsv,
     updateRow,
     deleteRow,
   };
@@ -130,5 +136,18 @@ describe('DatabasesApi — rows', () => {
     expect(m.updateRow).toHaveBeenCalledWith({ rowId: 'r1', values: { Status: null } });
     await api.deleteRow('r1');
     expect(m.deleteRow).toHaveBeenCalledWith({ rowId: 'r1' });
+  });
+
+  it('previewCsv sends the file with an optional mapping; commitCsv requires the mapping and takes a note', async () => {
+    const m = makeClient();
+    const api = new DatabasesApi(m.client);
+    const { previewCsv, commitCsv } = m;
+    await api.previewCsv('db1', 'Name,Score\nA,1');
+    expect(previewCsv).toHaveBeenCalledWith({ id: 'db1', csv: 'Name,Score\nA,1' });
+    const mapping = { Name: { kind: 'property' as const, propertyId: 'ptitle000001' } };
+    await api.previewCsv('db1', 'Name\nA', mapping);
+    expect(previewCsv).toHaveBeenLastCalledWith({ id: 'db1', csv: 'Name\nA', mapping });
+    await api.commitCsv('db1', 'Name\nA', mapping, { note: 'Q3 sheet' });
+    expect(commitCsv).toHaveBeenCalledWith({ id: 'db1', csv: 'Name\nA', mapping, note: 'Q3 sheet' });
   });
 });

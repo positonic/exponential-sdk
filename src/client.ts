@@ -604,6 +604,8 @@ export interface TrpcClient {
     createRow: { mutate: (input: { id: string; values?: Record<string, unknown>; note?: string }) => Promise<unknown> };
     updateRow: { mutate: (input: { rowId: string; values: Record<string, unknown>; note?: string }) => Promise<unknown> };
     deleteRow: { mutate: (input: { rowId: string }) => Promise<unknown> };
+    previewCsv: { query: (input: { id: string; csv: string; mapping?: Record<string, unknown> }) => Promise<unknown> };
+    commitCsv: { mutate: (input: { id: string; csv: string; mapping: Record<string, unknown>; note?: string }) => Promise<unknown> };
   };
   resource: {
     list: { query: (input: { workspaceId?: string; projectId?: string; contentType?: string; readStatus?: string; search?: string; tags?: string[]; includeArchived?: boolean; limit?: number; cursor?: string }) => Promise<unknown> };

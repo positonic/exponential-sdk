@@ -1,5 +1,8 @@
 import type { TrpcClient } from './client.js';
 import type {
+  CsvCommitResult,
+  CsvMapping,
+  CsvPreview,
   Database,
   DatabaseRow,
   DatabaseRowsPage,
@@ -188,5 +191,30 @@ export class DatabasesApi {
   /** Delete a row — the page and its search chunks. */
   async deleteRow(rowId: string): Promise<{ id: string; databaseId: string }> {
     return await this.client.database.deleteRow.mutate({ rowId }) as { id: string; databaseId: string };
+  }
+
+  // ── CSV import ─────────────────────────────────────────────────────────────
+
+  /**
+   * Type a CSV against the database before anything is created: columns
+   * resolved through `mapping` (or suggested by header name), every row
+   * checked, each cell that does not fit named. Writes nothing.
+   */
+  async previewCsv(databaseId: string, csv: string, mapping?: CsvMapping): Promise<CsvPreview> {
+    return await this.client.database.previewCsv.query({ id: databaseId, csv, ...(mapping ? { mapping } : {}) }) as CsvPreview;
+  }
+
+  /**
+   * Import a CSV: new columns become properties, then every row with no
+   * cell error becomes a row with a `create` revision; the rest are reported
+   * and left uncreated. Up to 2,000 rows a time.
+   */
+  async commitCsv(
+    databaseId: string,
+    csv: string,
+    mapping: CsvMapping,
+    options: RowWriteOptions = {},
+  ): Promise<CsvCommitResult> {
+    return await this.client.database.commitCsv.mutate({ id: databaseId, csv, mapping, ...options }) as CsvCommitResult;
   }
 }
