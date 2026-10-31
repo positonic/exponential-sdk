@@ -179,3 +179,59 @@ export interface DeletedDatabase {
   /** Rows deleted with it. */
   rowCount: number;
 }
+
+// ── CSV import (V4) ─────────────────────────────────────────────────────────
+
+/** Where one CSV column lands: skipped, an existing property (by id), or a new property. */
+export type CsvColumnTarget =
+  | { kind: 'skip' }
+  | { kind: 'property'; propertyId: string }
+  | { kind: 'new'; name: string; type: PropertyType };
+
+/** Column header (as in the file) → target. Headers left out are skipped. */
+export type CsvMapping = Record<string, CsvColumnTarget>;
+
+/** A cell the property's type refused: where it sits and why. */
+export interface CsvCellError {
+  header: string;
+  propertyName: string;
+  reason: string;
+}
+
+/** One file row, typed. `values` are keyed by property id, or `new:<name>` for a column not created yet. */
+export interface CsvPreviewRow {
+  /** 0-based among the data rows (the header line is not counted). */
+  index: number;
+  title: string | undefined;
+  values: Record<string, PropertyValue | null>;
+  /** Empty when the row would be created. */
+  errors: CsvCellError[];
+}
+
+export interface CsvPreviewColumn {
+  header: string;
+  target: CsvColumnTarget;
+  propertyName: string | null;
+  type: PropertyType | null;
+}
+
+export interface CsvPreview {
+  headers: string[];
+  /** The mapping used — the one passed, or the suggestion by header name. Pass it back to `commitCsv`. */
+  mapping: CsvMapping;
+  columns: CsvPreviewColumn[];
+  rows: CsvPreviewRow[];
+  total: number;
+  /** Rows with no cell error — what a commit creates. */
+  importable: number;
+}
+
+export interface CsvCommitResult {
+  /** The new row ids, in file order. */
+  created: string[];
+  /** Rows left uncreated, each with the cells that did not fit. */
+  skipped: { index: number; errors: CsvCellError[] }[];
+  /** Properties the import added (the `new` columns), with their minted ids. */
+  properties: PropertyDef[];
+  total: number;
+}

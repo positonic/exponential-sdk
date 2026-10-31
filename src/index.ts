@@ -348,6 +348,13 @@ export type {
   PropertyValue,
   DatabaseRow,
   DatabaseRowsPage,
+  CsvColumnTarget,
+  CsvMapping,
+  CsvCellError,
+  CsvPreviewRow,
+  CsvPreviewColumn,
+  CsvPreview,
+  CsvCommitResult,
   PropertyRejection,
   DeletedDatabase,
 } from './types/database.js';
