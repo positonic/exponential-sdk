@@ -318,6 +318,7 @@ export type {
   ResourceListOptions,
   ResourceListResult,
   ResourceCreateInput,
+  ResourceUpdateInput,
   ResourceReadState,
 } from './resources.js';
 export type {
