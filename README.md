@@ -187,6 +187,67 @@ const { draftCount, discardedWithoutEvidence } =
 
 ---
 
+### Databases
+
+Typed tables inside pages (ADR-0078). A database is a block in a page's body,
+owned by that page; each row is a page of its own (body, comments, history,
+URL) hidden from the Pages list. **Writes are typed**: every value is checked
+against its property's type and a bad one is refused naming the property
+(`error.data.property`). Reading the holding page with `pages.get` shows the
+table; this API is for the writes and for reading rows as data.
+
+```typescript
+// Create a database on a page, then place its block by appending the marker
+const page = await client.pages.get("page-123");
+const metrics = await client.databases.create({ pageId: page.id, name: "Metrics" });
+await client.pages.update({
+  id: page.id,
+  body: `${page.body}\n\n${metrics.marker}`,
+  baseVersion: page.docVersion,
+  note: "Add the Metrics database",
+});
+
+// Properties: title exists from creation; add the rest
+await client.databases.addProperty({
+  id: metrics.id,
+  name: "Status",
+  type: "select",
+  options: [{ name: "Not measured" }, { name: "Instrumenting" }, { name: "Tracked" }],
+});
+await client.databases.addProperty({ id: metrics.id, name: "Owner", type: "person" });
+
+// Rows: values by property name (or id); a select by option name
+const row = await client.databases.createRow(
+  metrics.id,
+  { Name: "Alert latency", Status: "Tracked", Owner: "user-123" },
+  { note: "Imported from the CLEAR page" },
+);
+await client.databases.updateRow(row.id, { Status: "Instrumenting" }, { note: "Re-measuring" });
+
+// Read rows through the saved view, or through a view of your own
+const { rows, nextCursor, columns } = await client.databases.listRows(metrics.id, {
+  view: { filters: [{ propertyId: "Status", op: "eq", value: "Tracked" }], hiddenPropertyIds: [], propertyOrder: [] },
+});
+```
+
+#### Property types
+
+`title` · `text` · `number` · `select` · `multiSelect` · `date` · `checkbox` ·
+`url` · `person` · `relation` (V3), plus read-only `createdTime` ·
+`lastEditedTime` · `createdBy`. Property and option ids are stable: renaming
+never rewrites a row. Stored values: `select` holds the option **id**,
+`multiSelect` and `person` lists, `date` an ISO 8601 string.
+
+#### Lifecycle
+
+Removing the block from the page **detaches** the database (`detachedAt`);
+its rows stay until `databases.delete`, the page's deletion, or the daily
+purge 30 days later. Writing the marker back re-attaches it. Rows follow the
+holding page for access, placement and publishing — `pages.move`,
+`pages.publish` and sharing on a row page are refused.
+
+---
+
 ### Configuration
 
 Credentials are stored persistently using the OS keychain via [`conf`](https://github.com/sindresorhus/conf).
