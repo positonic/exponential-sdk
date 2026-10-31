@@ -53,6 +53,14 @@ type ProjectUpdateApiInput = {
   endDate?: Date | null;
 };
 
+/** `database.*` saved view as the server validates it (ADR-0078). */
+type DatabaseViewInput = {
+  sort?: { propertyId: string; direction: 'asc' | 'desc' };
+  filters: { propertyId: string; op: string; value?: unknown }[];
+  hiddenPropertyIds: string[];
+  propertyOrder: string[];
+};
+
 type ActionStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'DELETED' | 'DRAFT';
 type ActionKanbanStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'CANCELLED';
 type ActionPriority = 'Quick' | 'Scheduled' | '1st Priority' | '2nd Priority' | '3rd Priority' | '4th Priority' | '5th Priority' | 'Errand' | 'Remember' | 'Watch' | 'Someday Maybe';
@@ -581,6 +589,21 @@ export interface TrpcClient {
     revision: { query: (input: { id: string; revisionId: string }) => Promise<unknown> };
     diff: { query: (input: { id: string; revisionId: string; against?: string }) => Promise<unknown> };
     restore: { mutate: (input: { id: string; revisionId: string; note?: string; baseVersion?: number }) => Promise<unknown> };
+  };
+  database: {
+    create: { mutate: (input: { pageId: string; name: string }) => Promise<unknown> };
+    get: { query: (input: { id: string }) => Promise<unknown> };
+    list: { query: (input: { pageId: string }) => Promise<unknown[]> };
+    update: { mutate: (input: { id: string; name?: string; view?: DatabaseViewInput }) => Promise<unknown> };
+    delete: { mutate: (input: { id: string }) => Promise<unknown> };
+    addProperty: { mutate: (input: { id: string; name: string; type: string; description?: string; options?: { id?: string; name: string; color?: string }[] }) => Promise<unknown> };
+    updateProperty: { mutate: (input: { id: string; propertyId: string; name?: string; description?: string | null; type?: string; options?: { id?: string; name: string; color?: string }[] }) => Promise<unknown> };
+    removeProperty: { mutate: (input: { id: string; propertyId: string }) => Promise<unknown> };
+    reorderProperties: { mutate: (input: { id: string; propertyIds: string[] }) => Promise<unknown> };
+    listRows: { query: (input: { id: string; view?: DatabaseViewInput; limit?: number; cursor?: string }) => Promise<unknown> };
+    createRow: { mutate: (input: { id: string; values?: Record<string, unknown>; note?: string }) => Promise<unknown> };
+    updateRow: { mutate: (input: { rowId: string; values: Record<string, unknown>; note?: string }) => Promise<unknown> };
+    deleteRow: { mutate: (input: { rowId: string }) => Promise<unknown> };
   };
   resource: {
     list: { query: (input: { workspaceId?: string; projectId?: string; contentType?: string; readStatus?: string; search?: string; tags?: string[]; includeArchived?: boolean; limit?: number; cursor?: string }) => Promise<unknown> };
