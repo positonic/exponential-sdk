@@ -585,6 +585,8 @@ export interface TrpcClient {
   resource: {
     list: { query: (input: { workspaceId?: string; projectId?: string; contentType?: string; readStatus?: string; search?: string; tags?: string[]; includeArchived?: boolean; limit?: number; cursor?: string }) => Promise<unknown> };
     create: { mutate: (input: { title: string; url?: string; description?: string; content?: string; contentType?: string; tags?: string[]; workspaceId?: string; projectId?: string; readStatus?: string; generateEmbeddings?: boolean }) => Promise<unknown> };
+    get: { query: (input: { id: string }) => Promise<unknown> };
+    update: { mutate: (input: { id: string; title?: string; description?: string; tags?: string[]; readStatus?: string }) => Promise<unknown> };
     setReadStatus: { mutate: (input: { id: string; readStatus: string }) => Promise<unknown> };
     archive: { mutate: (input: { id: string }) => Promise<unknown> };
   };
