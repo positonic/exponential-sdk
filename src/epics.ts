@@ -23,6 +23,13 @@ export interface EpicUpdateInput {
   priority?: EpicPriority;
   startDate?: Date | null;
   targetDate?: Date | null;
+  /**
+   * Hand the epic to another member of its workspace — e.g. an agent that
+   * created it on someone's behalf giving it to them. The server refuses a
+   * non-member (NOT_FOUND) and refuses `null` (BAD_REQUEST): an epic always
+   * has an owner.
+   */
+  ownerId?: string | null;
 }
 
 export class EpicsApi {
