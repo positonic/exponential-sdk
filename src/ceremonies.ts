@@ -9,6 +9,7 @@ import type {
   CeremonyImportResult,
   CeremonyKind,
   CeremonyMatrixPostResult,
+  CeremonyMatrixRemoveResult,
   CeremonyMeetingAttachment,
   CeremonyMeetingUrlMatch,
   CeremonyMyUpdate,
@@ -361,6 +362,19 @@ export class CeremoniesApi {
       occurrenceId,
       ...(options.confirmRepost ? { confirmRepost: true } : {}),
     }) as CeremonyMatrixPostResult;
+  }
+
+  /** Take one of the bot's agenda posts back out of its Matrix room. `eventId` comes from `agenda.matrixPosts`. */
+  async removeAgendaFromMatrix(
+    workspaceId: string,
+    occurrenceId: string,
+    eventId: string,
+  ): Promise<CeremonyMatrixRemoveResult> {
+    return await this.client.ceremony.removeAgendaFromMatrix.mutate({
+      workspaceId,
+      occurrenceId,
+      eventId,
+    }) as CeremonyMatrixRemoveResult;
   }
 
   /** Create a ceremony and its first occurrences for the rolling window. */

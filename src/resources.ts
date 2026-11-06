@@ -38,6 +38,14 @@ export interface ResourceCreateInput {
   generateEmbeddings?: boolean;
 }
 
+/** Fields `update` may change. `tags` replaces the whole set. */
+export interface ResourceUpdateInput {
+  title?: string;
+  description?: string;
+  tags?: string[];
+  readStatus?: ReadStatus;
+}
+
 export interface ResourceReadState {
   id: string;
   readStatus: ReadStatus | string;
@@ -64,15 +72,32 @@ export class ResourcesApi {
     return result.resource;
   }
 
-  /** Save a link to the Reading list: a `bookmark` in `to_read`, not embedded. */
+  async get(id: string): Promise<Resource> {
+    const result = await this.client.resource.get.query({ id }) as { resource: Resource };
+    return result.resource;
+  }
+
+  async update(id: string, input: ResourceUpdateInput): Promise<Resource> {
+    const result = await this.client.resource.update.mutate({ id, ...input }) as { resource: Resource };
+    return result.resource;
+  }
+
+  /**
+   * Save a link to the Reading list: a `bookmark` in `to_read`, not embedded.
+   *
+   * `tags` are added to the ones the link already has. The server dedupes by
+   * URL and would replace the set on re-save, so the link is saved untagged
+   * (which leaves existing tags alone) and the union written after.
+   */
   async save(input: {
     url: string;
     title?: string;
     note?: string;
+    tags?: string[];
     workspaceId?: string;
     readStatus?: ReadStatus;
   }): Promise<Resource> {
-    return await this.create({
+    const resource = await this.create({
       title: input.title?.trim() || hostnameOf(input.url) || input.url,
       url: input.url,
       description: input.note,
@@ -81,6 +106,10 @@ export class ResourcesApi {
       generateEmbeddings: false,
       workspaceId: input.workspaceId,
     });
+    const existing = resource.tags ?? [];
+    const added = (input.tags ?? []).filter((t) => !existing.includes(t));
+    if (added.length === 0) return resource;
+    return await this.update(resource.id, { tags: [...existing, ...added] });
   }
 
   async setReadStatus(id: string, readStatus: ReadStatus): Promise<ResourceReadState> {

@@ -22,6 +22,7 @@ import { LabelsApi } from './labels.js';
 import { AreasApi } from './areas.js';
 import { MeetingsApi } from './meetings.js';
 import { PagesApi } from './pages.js';
+import { DatabasesApi } from './databases.js';
 import { ResourcesApi } from './resources.js';
 import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
@@ -56,6 +57,8 @@ export class ExponentialClient {
   areas: AreasApi;
   meetings: MeetingsApi;
   pages: PagesApi;
+  /** Databases — typed tables inside pages (ADR-0078). */
+  databases: DatabasesApi;
   resources: ResourcesApi;
   requirements: RequirementsApi;
   scopes: ScopesApi;
@@ -90,6 +93,7 @@ export class ExponentialClient {
     this.areas = new AreasApi(this.client);
     this.meetings = new MeetingsApi(this.client);
     this.pages = new PagesApi(this.client);
+    this.databases = new DatabasesApi(this.client);
     this.resources = new ResourcesApi(this.client);
     this.requirements = new RequirementsApi(this.client);
     this.scopes = new ScopesApi(this.client);
@@ -305,6 +309,7 @@ export type {
   CeremonyImportResult,
   CeremonyKind,
   CeremonyMatrixPostResult,
+  CeremonyMatrixRemoveResult,
   CeremonyMeetingAttachment,
   CeremonyMeetingUrlMatch,
   CeremonyMyUpdate,
@@ -371,6 +376,7 @@ export type {
   ResourceListOptions,
   ResourceListResult,
   ResourceCreateInput,
+  ResourceUpdateInput,
   ResourceReadState,
 } from './resources.js';
 export type {
@@ -383,6 +389,42 @@ export type {
   PageCreateInput,
   PageUpdateInput,
 } from './pages.js';
+export type {
+  PropertyType,
+  PillColor,
+  RelationTargetKind,
+  SelectOption,
+  RelationConfig,
+  PropertyDef,
+  FilterOp,
+  DatabaseFilter,
+  DatabaseView,
+  Database,
+  PropertyValue,
+  DatabaseRow,
+  DatabaseRowsPage,
+  CsvColumnTarget,
+  CsvMapping,
+  CsvCellError,
+  CsvPreviewRow,
+  CsvPreviewColumn,
+  CsvPreview,
+  CsvCommitResult,
+  PropertyRejection,
+  DeletedDatabase,
+} from './types/database.js';
+export type {
+  DatabaseCreateInput,
+  DatabaseUpdateInput,
+  SelectOptionInput,
+  AddablePropertyType,
+  PropertyAddInput,
+  PropertyUpdateInput,
+  RowListOptions,
+  RowValuesInput,
+  RowWriteOptions,
+  DatabasePropertyResult,
+} from './databases.js';
 export type { Requirement, RequirementKind } from './types/requirement.js';
 export type {
   RequirementListOptions,

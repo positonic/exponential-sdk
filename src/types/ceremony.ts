@@ -262,6 +262,9 @@ export interface CeremonyAgendaMatrixPost {
   eventId: string;
   postedAt: string;
   postedById: string | null;
+  /** Set when the post was taken back out of the room. */
+  removedAt?: string | null;
+  removedById?: string | null;
 }
 
 /** The agenda snapshot stored on an occurrence (ISO strings, not Dates). */
@@ -402,6 +405,12 @@ export type CeremonyMatrixPostResult =
   | { kind: 'no-agenda' }
   | { kind: 'already-posted'; roomId: string; postedAt: string }
   | { kind: 'no-server'; reason: string }
+  | { kind: 'failed'; reason: string };
+
+export type CeremonyMatrixRemoveResult =
+  | { kind: 'removed'; roomId: string; eventId: string }
+  | { kind: 'already-removed'; roomId: string; removedAt: string }
+  | { kind: 'not-found' }
   | { kind: 'failed'; reason: string };
 
 /** A built-in template for one ceremony kind ("Add from template"). */

@@ -21,6 +21,7 @@ function makeClient() {
     addAgendaItem: vi.fn().mockResolvedValue({ occurrenceId: 'o1' }),
     reorderAgendaItems: vi.fn().mockResolvedValue({ occurrenceId: 'o1' }),
     postAgendaToMatrix: vi.fn().mockResolvedValue({ kind: 'no-room' }),
+    removeAgendaFromMatrix: vi.fn().mockResolvedValue({ kind: 'not-found' }),
     create: vi.fn().mockResolvedValue({ ceremony: { id: 'c1' }, occurrencesCreated: 4 }),
     update: vi.fn().mockResolvedValue({ ceremony: { id: 'c1' }, occurrencesCreated: 0 }),
     importDefinitions: vi.fn().mockResolvedValue([]),
@@ -54,6 +55,7 @@ function makeClient() {
       addAgendaItem: m(calls.addAgendaItem),
       reorderAgendaItems: m(calls.reorderAgendaItems),
       postAgendaToMatrix: m(calls.postAgendaToMatrix),
+      removeAgendaFromMatrix: m(calls.removeAgendaFromMatrix),
       create: m(calls.create),
       update: m(calls.update),
       importDefinitions: m(calls.importDefinitions),
@@ -133,6 +135,12 @@ describe('CeremoniesApi writes', () => {
     expect(resolveAgendaItem).toHaveBeenLastCalledWith({ workspaceId: 'w1', occurrenceId: 'o1', itemId: 'i1', resolved: true });
     await api.resolveAgendaItem('w1', 'o1', 'i1', false);
     expect(resolveAgendaItem).toHaveBeenLastCalledWith({ workspaceId: 'w1', occurrenceId: 'o1', itemId: 'i1', resolved: false });
+  });
+
+  it('removeAgendaFromMatrix addresses the post by event id', async () => {
+    const { api, removeAgendaFromMatrix } = makeClient();
+    await api.removeAgendaFromMatrix('w1', 'o1', '$event');
+    expect(removeAgendaFromMatrix).toHaveBeenCalledWith({ workspaceId: 'w1', occurrenceId: 'o1', eventId: '$event' });
   });
 
   it('backfillAttachments is a dry run unless told otherwise', async () => {
