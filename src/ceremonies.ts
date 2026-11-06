@@ -74,8 +74,10 @@ export interface CeremonyCreateInput extends CeremonyFields {
 }
 
 /**
- * Partial edit. Changing the cadence, zone, anchor or duration drops future
- * PLANNED occurrences that nothing is attached to and regenerates them.
+ * Partial edit. Changing the cadence, zone, anchor or duration deletes future
+ * PLANNED occurrences with no booking or recording, along with any agenda, notes
+ * link and async updates on them, and recreates them with new ids. Occurrences
+ * moved or added by hand stay.
  */
 export interface CeremonyUpdateInput extends Partial<CeremonyFields> {
   workspaceId: string;
@@ -248,7 +250,11 @@ export class CeremoniesApi {
     return await this.client.ceremony.saveMyOccurrenceUpdate.mutate(input) as CeremonyMyUpdate;
   }
 
-  /** Generate or regenerate an occurrence's agenda; `circulate` also notifies participants. */
+  /**
+   * Generate or regenerate an occurrence's agenda. `circulate` also notifies
+   * participants and posts to the ceremony's Matrix room, and it re-sends both
+   * if they already went out, so don't retry it blindly.
+   */
   async generateAgenda(
     workspaceId: string,
     occurrenceId: string,
@@ -263,7 +269,9 @@ export class CeremoniesApi {
 
   /**
    * Skip an occurrence with a reason (1-500 characters). Participants are
-   * told. Skipping a booked one-off cancels its calendar invites.
+   * told. Skipping a booked one-off cancels the meeting: every attendee with an
+   * address gets a calendar cancellation, the ceremony is retired, and it can't
+   * be unskipped.
    */
   async skipOccurrence(
     workspaceId: string,
@@ -287,7 +295,7 @@ export class CeremoniesApi {
     }) as CeremonySkipResult;
   }
 
-  /** Add one occurrence at any time — a meeting off the cadence (owner only). */
+  /** Add one occurrence at any time — a meeting off the cadence (owner, or workspace owner/admin). */
   async addOccurrence(
     workspaceId: string,
     ceremonyId: string,
@@ -301,8 +309,8 @@ export class CeremoniesApi {
   }
 
   /**
-   * Move an occurrence that hasn't happened to another time (owner only). It
-   * keeps its agenda, notes, updates and recordings.
+   * Move an occurrence that hasn't happened to another time (owner, or
+   * workspace owner/admin). It keeps its agenda, notes, updates and recordings.
    */
   async rescheduleOccurrence(
     workspaceId: string,
@@ -393,7 +401,9 @@ export class CeremoniesApi {
 
   /**
    * Attach unattached recordings to occurrences by alias. Defaults to a dry
-   * run — the report is the review step; pass `dryRun: false` to write.
+   * run — the report is the review step; pass `dryRun: false` to write. Even a
+   * dry run writes one thing: it schedules any missing occurrences of active
+   * ceremonies, so that historical ones exist to attach to.
    */
   async backfillAttachments(
     workspaceId: string,
