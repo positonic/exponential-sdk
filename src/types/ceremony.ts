@@ -241,7 +241,7 @@ export interface CeremonyAgendaItem {
   /** ISO timestamp; null/absent while unresolved. */
   resolvedAt?: string | null;
   order: number;
-  /** Who the item is with, when the section knows (e.g. a project's DRI). */
+  /** Who the item belongs to (a project's DRI). */
   owner?: string | null;
   detail?: string | null;
   /** `detail` split into lines for the Matrix post; older snapshots hold plain strings. */
