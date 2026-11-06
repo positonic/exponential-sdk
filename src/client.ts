@@ -447,9 +447,19 @@ export interface TrpcClient {
   };
   pageComment: {
     list: { query: (input: { pageId: string }) => Promise<unknown[]> };
-    create: { mutate: (input: { pageId: string; body: string }) => Promise<unknown> };
+    create: {
+      mutate: (input: {
+        pageId: string;
+        body: string;
+        quotedText?: string;
+        quoteContext?: { prefix?: string; suffix?: string };
+      }) => Promise<unknown>;
+    };
+    reply: { mutate: (input: { parentId: string; body: string }) => Promise<unknown> };
     update: { mutate: (input: { commentId: string; body: string }) => Promise<unknown> };
     delete: { mutate: (input: { commentId: string }) => Promise<unknown> };
+    resolve: { mutate: (input: { pageId: string; threadId: string }) => Promise<unknown> };
+    unresolve: { mutate: (input: { pageId: string; threadId: string }) => Promise<unknown> };
   };
   /** Local-runner side of Agent runs (ADR-0067); agent-key principals only. */
   agentRun: {

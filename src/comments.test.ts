@@ -17,8 +17,11 @@ function makeClient() {
     fcUnresolve: vi.fn().mockResolvedValue({ success: true }),
     pcList: vi.fn().mockResolvedValue([{ id: 'p1' }]),
     pcCreate: vi.fn().mockResolvedValue({ id: 'p1' }),
+    pcReply: vi.fn().mockResolvedValue({ id: 'p2' }),
     pcUpdate: vi.fn().mockResolvedValue({ id: 'p1' }),
     pcDelete: vi.fn().mockResolvedValue({ success: true }),
+    pcResolve: vi.fn().mockResolvedValue({ success: true }),
+    pcUnresolve: vi.fn().mockResolvedValue({ success: true }),
     gcList: vi.fn().mockResolvedValue([{ id: 'g1' }]),
     gcAdd: vi.fn().mockResolvedValue({ id: 'g1' }),
     gcUpdate: vi.fn().mockResolvedValue({ id: 'g1' }),
@@ -51,8 +54,11 @@ function makeClient() {
     pageComment: {
       list: { query: fns.pcList },
       create: { mutate: fns.pcCreate },
+      reply: { mutate: fns.pcReply },
       update: { mutate: fns.pcUpdate },
       delete: { mutate: fns.pcDelete },
+      resolve: { mutate: fns.pcResolve },
+      unresolve: { mutate: fns.pcUnresolve },
     },
     product: {
       featureComment: {
@@ -147,6 +153,35 @@ describe('PageCommentsApi', () => {
     await new PageCommentsApi(client).delete('p1');
 
     expect(pcDelete).toHaveBeenCalledWith({ commentId: 'p1' });
+  });
+
+  it('anchors by quote, leaving the threadId to the server', async () => {
+    const { client, pcCreate } = makeClient();
+    await new PageCommentsApi(client).create({
+      pageId: 'page1',
+      body: 'Which one?',
+      quotedText: 'the indicator',
+      quoteContext: { prefix: 'We pick ' },
+    });
+
+    expect(pcCreate).toHaveBeenCalledWith({
+      pageId: 'page1',
+      body: 'Which one?',
+      quotedText: 'the indicator',
+      quoteContext: { prefix: 'We pick ' },
+    });
+  });
+
+  it('replies, resolves and unresolves threads', async () => {
+    const { client, pcReply, pcResolve, pcUnresolve } = makeClient();
+    const api = new PageCommentsApi(client);
+    await api.reply({ parentId: 'p1', body: 'agreed' });
+    await api.resolve({ pageId: 'page1', threadId: 't1' });
+    await api.unresolve({ pageId: 'page1', threadId: 't1' });
+
+    expect(pcReply).toHaveBeenCalledWith({ parentId: 'p1', body: 'agreed' });
+    expect(pcResolve).toHaveBeenCalledWith({ pageId: 'page1', threadId: 't1' });
+    expect(pcUnresolve).toHaveBeenCalledWith({ pageId: 'page1', threadId: 't1' });
   });
 });
 

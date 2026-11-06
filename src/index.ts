@@ -184,6 +184,7 @@ export type {
   TicketComment,
   FeatureComment,
   PageComment,
+  PageCommentCreated,
   GoalComment,
   CommentAuthor,
 } from './types/comment.js';
@@ -199,7 +200,9 @@ export type {
 } from './featureComments.js';
 export type {
   PageCommentCreateInput,
+  PageCommentReplyInput,
   PageCommentUpdateInput,
+  PageCommentThreadInput,
 } from './pageComments.js';
 export type {
   GoalCommentAddInput,
