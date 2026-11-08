@@ -8,6 +8,7 @@ import { GoalsApi } from './goals.js';
 import { KeyResultsApi } from './keyResults.js';
 import { ProjectsApi } from './projects.js';
 import { WorkspacesApi } from './workspaces.js';
+import { PositionsApi } from './positions.js';
 import { CeremoniesApi } from './ceremonies.js';
 import { ContactsApi } from './contacts.js';
 import { DecisionsApi } from './decisions.js';
@@ -42,6 +43,8 @@ export class ExponentialClient {
   keyResults: KeyResultsApi;
   projects: ProjectsApi;
   workspaces: WorkspacesApi;
+  /** Positions — a workspace's roles & responsibilities (ADR-0068). */
+  positions: PositionsApi;
   /** Ceremonies and their occurrences (ADR-0059). */
   ceremonies: CeremoniesApi;
   contacts: ContactsApi;
@@ -79,6 +82,7 @@ export class ExponentialClient {
     this.goals = new GoalsApi(this.client, this.keyResults);
     this.projects = new ProjectsApi(this.client);
     this.workspaces = new WorkspacesApi(this.client);
+    this.positions = new PositionsApi(this.client);
     this.ceremonies = new CeremoniesApi(this.client);
     this.contacts = new ContactsApi(this.client);
     this.decisions = new DecisionsApi(this.client);
@@ -292,6 +296,22 @@ export type {
   DecisionSetStatusInput,
   DecisionUpdateInput,
 } from './decisions.js';
+export { PositionsApi } from './positions.js';
+export type {
+  Position,
+  PositionHolder,
+  PositionMemberCoverage,
+  PositionList,
+  PositionCoverage,
+  PositionImportResult,
+  PositionImportOutput,
+} from './types/position.js';
+export type {
+  PositionCreateInput,
+  PositionUpdateInput,
+  PositionImportRow,
+  PositionImportInput,
+} from './positions.js';
 export { CeremoniesApi } from './ceremonies.js';
 export type {
   Ceremony,
