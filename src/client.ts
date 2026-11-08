@@ -8,6 +8,11 @@ import type {
   CeremonySaveMyUpdateInput,
   CeremonyUpdateInput,
 } from './ceremonies.js';
+import type {
+  PositionCreateInput,
+  PositionImportInput,
+  PositionUpdateInput,
+} from './positions.js';
 
 type ActionInput = {
   assigneeId?: string;
@@ -364,6 +369,18 @@ export interface TrpcClient {
   workspace: {
     list: { query: () => Promise<unknown[]> };
     listMembers: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
+  };
+  // Positions (ADR-0068). Every write is humanOnlyProcedure.
+  position: {
+    list: { query: (input: { workspaceId: string }) => Promise<unknown> };
+    coverage: { query: (input: { workspaceId: string }) => Promise<unknown> };
+    create: { mutate: (input: PositionCreateInput) => Promise<unknown> };
+    update: { mutate: (input: PositionUpdateInput) => Promise<unknown> };
+    delete: { mutate: (input: { workspaceId: string; positionId: string }) => Promise<unknown> };
+    setHolders: {
+      mutate: (input: { workspaceId: string; positionId: string; userIds: string[] }) => Promise<unknown>;
+    };
+    importMany: { mutate: (input: PositionImportInput) => Promise<unknown> };
   };
   goal: {
     getById: { query: (input: { id: number }) => Promise<unknown> };

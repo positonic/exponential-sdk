@@ -60,6 +60,35 @@ Returns all workspaces you have access to.
 
 ---
 
+### Positions (roles & responsibilities)
+
+The roles shown on a workspace's settings page (ADR-0068). Writes need a
+person's own API token — agent keys get `FORBIDDEN` — and owner/admin, except
+that a holder who is at least a member may edit their Position's remit.
+
+```typescript
+const { positions, members } = await client.positions.list(workspaceId);
+
+const cto = await client.positions.create({
+  workspaceId,
+  title: 'Technical Director',
+  remit: 'Architecture, hiring engineers, the release process.',
+  notAccountableFor: 'Sales and marketing.',
+  holderUserIds: [userId],
+});
+
+await client.positions.update({ workspaceId, positionId: cto.id, remit: '...' });
+await client.positions.setHolders(workspaceId, cto.id, [userId, otherUserId]);
+await client.positions.delete(workspaceId, cto.id);
+
+// Upsert by title in one transaction; dryRun shows the plan first.
+await client.positions.importMany({ workspaceId, dryRun: true, positions: [
+  { title: 'Travel researcher', remit: 'Flights, hotels, visas.', holderUserIds: [] },
+] });
+```
+
+---
+
 ### Projects
 
 ```typescript
