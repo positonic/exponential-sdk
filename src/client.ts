@@ -370,6 +370,10 @@ export interface TrpcClient {
     list: { query: () => Promise<unknown[]> };
     listMembers: { query: (input: { workspaceId: string }) => Promise<unknown[]> };
   };
+  user: {
+    /** Who the token signs in as — an agent's shadow user for an `exp_agent_…` key. */
+    getCurrentUser: { query: () => Promise<unknown> };
+  };
   // Positions (ADR-0068). Every write is humanOnlyProcedure.
   position: {
     list: { query: (input: { workspaceId: string }) => Promise<unknown> };
