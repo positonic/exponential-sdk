@@ -28,6 +28,7 @@ import { ResourcesApi } from './resources.js';
 import { RequirementsApi } from './requirements.js';
 import { ScopesApi } from './scopes.js';
 import { SearchApi } from './search.js';
+import { UsersApi } from './users.js';
 import { TimeApi } from './time.js';
 import { AgentRunsApi } from './agentRuns.js';
 
@@ -66,6 +67,7 @@ export class ExponentialClient {
   requirements: RequirementsApi;
   scopes: ScopesApi;
   search: SearchApi;
+  users: UsersApi;
   /** Time entries — the Daily worklog's write path (ADR-0061). */
   time: TimeApi;
   /** Agent runs — the local runner's claim/heartbeat/append/finish (ADR-0067); agent-key only. */
@@ -102,6 +104,7 @@ export class ExponentialClient {
     this.requirements = new RequirementsApi(this.client);
     this.scopes = new ScopesApi(this.client);
     this.search = new SearchApi(this.client);
+    this.users = new UsersApi(this.client);
     this.time = new TimeApi(this.client);
     this.agentRuns = new AgentRunsApi(this.client);
   }
@@ -117,6 +120,7 @@ export {
 } from './config.js';
 
 export type { ExponentialConfig } from './config.js';
+export type { CurrentUser } from './types/user.js';
 export type {
   Action,
   ActionOutput,

@@ -60,6 +60,17 @@ Returns all workspaces you have access to.
 
 ---
 
+### Users
+
+```typescript
+const me = await client.users.me();
+// { id, name, email, image, isAgent, agent: { id, name, owner: { id, name } } | null }
+```
+
+Who the token signs in as. For an External agent's `exp_agent_…` key this is the agent's own shadow user: `isAgent` is `true` and `agent` names the agent and the person who owns it. When a call comes back `FORBIDDEN`, this is the account to add to the workspace or the restricted project.
+
+---
+
 ### Positions (roles & responsibilities)
 
 The roles shown on a workspace's settings page (ADR-0068). Writes need a
