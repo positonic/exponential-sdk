@@ -17,6 +17,8 @@ export interface CycleListOptions {
    * The server lazily generates upcoming cycles as a side effect of `list`.
    * Pass `false` to read without provisioning anything — useful for read-only
    * callers that should not mutate the workspace just by looking at it.
+   * The server defaults it to `true`, and the generated rows are attributed
+   * to the caller. `current()` and `resolve()` always pass `false`.
    */
   autoCreate?: boolean;
 }
@@ -99,11 +101,11 @@ export class CyclesApi {
   async current(workspaceId: string, product?: string): Promise<Cycle | null> {
     if (product) {
       const productId = await this.resolveProductId(workspaceId, product);
-      const active = await this.list({ workspaceId, productId, status: 'ACTIVE' });
+      const active = await this.list({ workspaceId, productId, status: 'ACTIVE', autoCreate: false });
       return active.find((c) => c.productId === productId) ?? active[0] ?? null;
     }
 
-    const active = await this.list({ workspaceId, status: 'ACTIVE' });
+    const active = await this.list({ workspaceId, status: 'ACTIVE', autoCreate: false });
     if (active.length <= 1) return active[0] ?? null;
 
     const timelines = new Set(active.map((c) => c.productId ?? null));
@@ -158,7 +160,7 @@ export class CyclesApi {
     const productId = product
       ? await this.resolveProductId(workspaceId, product)
       : undefined;
-    const cycles = await this.list({ workspaceId, productId });
+    const cycles = await this.list({ workspaceId, productId, autoCreate: false });
 
     const exact =
       cycles.find((c) => c.id === candidate) ??

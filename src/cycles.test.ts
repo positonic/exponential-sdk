@@ -167,3 +167,26 @@ describe('CyclesApi.resolve', () => {
     await expect(api.resolve('w1', 'nope')).rejects.toThrow(/cycle-9, cycle-9-2/);
   });
 });
+
+describe('CyclesApi lookups never auto-create cycles', () => {
+  it('current() and resolve() list with autoCreate: false', async () => {
+    const { api, list } = makeApi();
+
+    await api.current('w1', P1);
+    await api.resolve('w1', 'cycle-8', P1);
+    await api.resolve('w1', 'current', P1);
+
+    expect(list.mock.calls.length).toBeGreaterThan(0);
+    for (const [input] of list.mock.calls) {
+      expect(input).toMatchObject({ autoCreate: false });
+    }
+  });
+
+  it('list() leaves autoCreate to the caller', async () => {
+    const { api, list } = makeApi();
+
+    await api.list({ workspaceId: 'w1' });
+
+    expect(list.mock.calls[0]?.[0]).toMatchObject({ autoCreate: undefined });
+  });
+});
