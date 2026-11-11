@@ -22,6 +22,8 @@ import { EpicsApi } from './epics.js';
 import { LabelsApi } from './labels.js';
 import { AreasApi } from './areas.js';
 import { MeetingsApi } from './meetings.js';
+import { CalendarApi } from './calendar.js';
+import { CyclesApi } from './cycles.js';
 import { PagesApi } from './pages.js';
 import { DatabasesApi } from './databases.js';
 import { ResourcesApi } from './resources.js';
@@ -60,6 +62,8 @@ export class ExponentialClient {
   labels: LabelsApi;
   areas: AreasApi;
   meetings: MeetingsApi;
+  calendar: CalendarApi;
+  cycles: CyclesApi;
   pages: PagesApi;
   /** Databases — typed tables inside pages (ADR-0078). */
   databases: DatabasesApi;
@@ -98,6 +102,8 @@ export class ExponentialClient {
     this.labels = new LabelsApi(this.client);
     this.areas = new AreasApi(this.client);
     this.meetings = new MeetingsApi(this.client);
+    this.calendar = new CalendarApi(this.client);
+    this.cycles = new CyclesApi(this.client);
     this.pages = new PagesApi(this.client);
     this.databases = new DatabasesApi(this.client);
     this.resources = new ResourcesApi(this.client);
@@ -536,3 +542,30 @@ export type {
   FinishInput,
   FinishResult,
 } from './agentRuns.js';
+
+export type {
+  CalendarAccount,
+  CalendarConnectionStatus,
+  CalendarConnectionStatuses,
+  CalendarEvent,
+  CalendarEventAttendee,
+  CalendarEventTime,
+  CalendarEventWithSource,
+  CalendarInfo,
+  CalendarPreferences,
+  CalendarProviderName,
+  CreatedCalendarEvent,
+} from './types/calendar.js';
+export type {
+  CalendarAccountSelector,
+  CalendarCreateEventInput,
+  CalendarListEventsOptions,
+  CalendarSelectCalendarsInput,
+} from './calendar.js';
+export { CALENDAR_MAX_RESULTS, CALENDAR_MAX_SELECTED } from './calendar.js';
+export type { Cycle, CycleDetail, CycleStatus } from './types/cycle.js';
+export type {
+  CycleListOptions,
+  CycleCreateInput,
+  CycleUpdateInput,
+} from './cycles.js';
