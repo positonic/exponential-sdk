@@ -199,6 +199,29 @@ type ActionUpdateInput = {
   blockedByIds?: string[];
 };
 
+type CalendarProviderInput = 'google' | 'microsoft';
+
+type CalendarAccountSelectorInput = {
+  provider?: CalendarProviderInput;
+  accountId?: string;
+};
+
+type CalendarCreateEventPayload = {
+  summary: string;
+  description?: string;
+  start: { dateTime: string; timeZone?: string };
+  end: { dateTime: string; timeZone?: string };
+  attendees?: Array<{ email: string }>;
+  conferenceData?: {
+    createRequest: {
+      requestId: string;
+      conferenceSolutionKey: { type: 'hangoutsMeet' };
+    };
+  };
+  calendarId?: string;
+  provider?: CalendarProviderInput;
+};
+
 type MeetingParticipantPersonInput = {
   userId?: string;
   contactId?: string;
@@ -331,6 +354,33 @@ export interface TrpcClient {
     bulkDeleteTranscriptions: {
       mutate: (input: { ids: string[] }) => Promise<unknown>;
     };
+  };
+  calendar: {
+    getAllConnectionStatuses: { query: () => Promise<unknown> };
+    getCalendarAccounts: { query: () => Promise<unknown> };
+    getEventsMultiCalendar: {
+      query: (input: {
+        timeMin?: Date;
+        timeMax?: Date;
+        maxResults?: number;
+      }) => Promise<unknown[]>;
+    };
+    listCalendars: {
+      query: (input?: CalendarAccountSelectorInput) => Promise<unknown[]>;
+    };
+    getCalendarPreferences: {
+      query: (input?: CalendarAccountSelectorInput) => Promise<unknown>;
+    };
+    updateSelectedCalendars: {
+      mutate: (
+        input: CalendarAccountSelectorInput & { calendarIds: string[] },
+      ) => Promise<unknown>;
+    };
+    syncCalendarList: {
+      mutate: (input?: CalendarAccountSelectorInput) => Promise<unknown>;
+    };
+    createEvent: { mutate: (input: CalendarCreateEventPayload) => Promise<unknown> };
+    disconnect: { mutate: (input?: CalendarAccountSelectorInput) => Promise<unknown> };
   };
   search: {
     global: {
@@ -772,6 +822,13 @@ export interface TrpcClient {
       unlinkPage: { mutate: (input: { featureId: string; pageId: string }) => Promise<unknown> };
       listAreas: { query: (input: { productId: string }) => Promise<unknown[]> };
       createArea: { mutate: (input: { productId: string; name: string; description?: string }) => Promise<unknown> };
+    };
+    cycle: {
+      list: { query: (input: { workspaceId: string; productId?: string; status?: 'PLANNED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED'; autoCreate?: boolean }) => Promise<unknown[]> };
+      getById: { query: (input: { id: string }) => Promise<unknown> };
+      create: { mutate: (input: { workspaceId: string; productId?: string; name?: string; slug?: string; description?: string; startDate?: Date; endDate?: Date; cycleGoal?: string }) => Promise<unknown> };
+      update: { mutate: (input: { id: string; name?: string; description?: string | null; status?: 'PLANNED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED'; startDate?: Date | null; endDate?: Date | null; cycleGoal?: string | null; achievements?: string | null }) => Promise<unknown> };
+      delete: { mutate: (input: { id: string }) => Promise<unknown> };
     };
     ticket: {
       list: { query: (input: { productId?: string; status?: string; type?: string; featureId?: string; epicId?: string; cycleId?: string; assigneeId?: string; prUrl?: string; branchName?: string }) => Promise<unknown[]> };
